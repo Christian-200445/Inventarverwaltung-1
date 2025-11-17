@@ -1,7 +1,181 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<!-- ========================================================= -->
+<!-- FULL WIDTH PAGE WRAPPER -->
+<!-- ========================================================= -->
+<div style="
+    width: 100%;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.10);
+    box-sizing: border-box;
+">
 
-<h1>Hello, world!</h1>
 
-Welcome to your new app.
+    <!-- ========================================================= -->
+    <!-- HEADER (Logo + Titel) -->
+    <!-- ========================================================= -->
+    <div style="
+        width: 100%;
+        height: 85px;
+        background: linear-gradient(90deg, #1E3A8A, #3B82F6);
+        color: white;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        padding: 0 25px;
+        gap: 20px;
+    ">
+        <img src="logo_header.jpg"
+             style="height: 60px; width: auto;" />
+
+        <h1 style="
+            margin: 0;
+            font-size: 32px;
+            font-weight: 600;
+            flex-grow: 1;
+            text-align: center;
+            letter-spacing: 0.5px;
+        ">
+            Inventarverwaltung
+        </h1>
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- GRID WRAPPER -->
+    <!-- ========================================================= -->
+    <div style="
+        width: 100%;
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 14px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.10);
+        box-sizing: border-box;
+    ">
+
+        <!-- ========================================================= -->
+        <!-- DATA GRID -->
+        <!-- ========================================================= -->
+        <RadzenDataGrid @bind-Value="@selectedItems"
+                        Data="@data"
+                        TItem="IDictionary<string, object>"
+                        ColumnWidth="auto"
+                        AllowFiltering="true"
+                        FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                        FilterMode="FilterMode.Advanced"
+                        AllowColumnResize="true"
+                        AllowPaging="true"
+                        AllowSorting="true"
+                        Style="
+                width: 100%;
+                border-radius: 12px;
+                overflow: hidden;
+            ">
+
+            <Columns>
+                @foreach (var column in columns)
+                {
+                    <RadzenDataGridColumn @key="@column.Key"
+                                          Title="@column.Key"
+                                          Type="@column.Value"
+                                          Property="@PropertyAccess.GetDynamicPropertyExpression(column.Key, column.Value)">
+                        <Template>
+                            @context[@column.Key]
+                        </Template>
+                    </RadzenDataGridColumn>
+                }
+            </Columns>
+
+        </RadzenDataGrid>
+
+    </div>
+
+</div>
+
+
+
+@code
+{
+    // =========================================================
+    // FIELDS
+    // =========================================================
+    IList<IDictionary<string, object>> selectedItems;
+
+    public IEnumerable<IDictionary<string, object>> data { get; set; }
+
+    public IDictionary<string, Type> columns { get; set; }
+
+
+    // =========================================================
+    // ENUMS (falls später benötigt)
+    // =========================================================
+    public enum EnumTest
+    {
+        EnumValue1,
+        EnumValue2
+    }
+
+
+    // =========================================================
+    // INITIALISIERUNG
+    // =========================================================
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        // -------------------------------------
+        // COLUMNS DEFINITION
+        // -------------------------------------
+        columns = new Dictionary<string, Type>()
+        {
+            { "InventarID", typeof(int) },
+            { "Name", typeof(string) },
+            { "Status", typeof(string) },
+            { "Abteilung", typeof(string) },
+            { "Gruppe", typeof(string) },
+            { "Schulfach", typeof(string) },
+            { "Ort", typeof(string) },
+            { "Verantwortlich", typeof(string) },
+            { "Rolle", typeof(string) },
+            { "Zustand", typeof(string) }
+        };
+
+        // -------------------------------------
+        // DUMMY DATA GENERIEREN
+        // -------------------------------------
+        data = new List<Dictionary<string, object>>
+{
+    new()
+    {
+        { "InventarID", 1001 },
+        { "Name", "iPad 10 Gen" },
+        { "Status", "Eingesetzt" },
+        { "Abteilung", "IT" },
+        { "Gruppe", "EDV" },
+        { "Schulfach", "Mathe" },
+        { "Ort", "Raum 204" },
+        { "Verantwortlich", "Herr Müller" },
+        { "Rolle", "Admin" },
+        { "Zustand", "Gut" }
+    },
+
+    new()
+    {
+        { "InventarID", 1002 },
+        { "Name", "Beamer Epson 4000" },
+        { "Status", "Reparatur" },
+        { "Abteilung", "AV" },
+        { "Gruppe", "Technik" },
+        { "Schulfach", "Physik" },
+        { "Ort", "Lager" },
+        { "Verantwortlich", "Frau Schmidt" },
+        { "Rolle", "Verantwortlich" },
+        { "Zustand", "Defekt" }
+    }
+};
+    }
+}

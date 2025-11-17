@@ -5,6 +5,9 @@ html, body {
 a, .btn-link {
     color: #006bb7;
 }
+.rz-data-grid table {
+    table-layout: auto !important;
+}
 
 .btn-primary {
     color: #fff;
