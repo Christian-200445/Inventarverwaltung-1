@@ -8,8 +8,8 @@
           <modelAttribute Id="74667e77-def8-4cef-8446-cf92465486fd" maxLength="" indexed="false" indexedUnique="false" stringType="None" name="Name" autoProperty="true" minLength="0" columnName="Name" columnType="default" implementNotify="false" isForeignKeyFor="00000000-0000-0000-0000-000000000000" backingFieldName="_name" databaseCollation="default" propertyAccessMode="Field" isPropertyAccessModeTracking="false" />
         </attributes>
         <bidirectionalTargets>
-          <bidirectionalAssociation Id="57c6205c-6659-49dc-9686-ba1157fb8190" sourceMultiplicity="ZeroMany" targetPropertyName="Benutzer" collectionClass="HashSet" foreignKeyLocation="None" targetImplementNotify="false" targetBackingFieldName="_benutzer" targetAutoProperty="true" isTargetAbstract="false" targetAutoInclude="false" sourcePropertyName="Rolle" sourceImplementNotify="false" sourceBackingFieldName="_rolle" sourceAutoProperty="true" isSourceAbstract="false" sourceAutoInclude="false">
-            <modelClassMoniker Id="451f4b35-5e3d-46c6-a73f-655836c5cee1" />
+          <bidirectionalAssociation Id="54e51c32-ead2-4c4c-866d-46d24038e858" targetPropertyName="BenutzerRolle" collectionClass="HashSet" sourceRole="Principal" targetRole="Dependent" foreignKeyLocation="None" targetImplementNotify="false" targetBackingFieldName="_benutzerRolle" targetAutoProperty="true" isTargetAbstract="false" targetAutoInclude="false" sourcePropertyName="Rolle" sourceImplementNotify="false" sourceBackingFieldName="_rolle" sourceAutoProperty="true" isSourceAbstract="false" sourceAutoInclude="false">
+            <modelClassMoniker Id="f47d897f-f182-482d-89b4-5200c5ccd4f6" />
           </bidirectionalAssociation>
         </bidirectionalTargets>
       </modelClass>
@@ -21,8 +21,8 @@
           <modelAttribute Id="d4381e1f-7ff0-45e9-9e35-1456f403e87e" maxLength="" indexed="false" indexedUnique="false" stringType="None" name="Beschreibung" autoProperty="true" minLength="0" columnName="Beschreibung" columnType="default" implementNotify="false" isForeignKeyFor="00000000-0000-0000-0000-000000000000" backingFieldName="_beschreibung" databaseCollation="default" propertyAccessMode="Field" isPropertyAccessModeTracking="false" />
         </attributes>
         <bidirectionalTargets>
-          <bidirectionalAssociation Id="b4f36232-1006-450c-8295-93e2d9a8d971" sourceMultiplicity="ZeroMany" targetPropertyName="Inventargegenstand" collectionClass="HashSet" foreignKeyLocation="None" targetImplementNotify="false" targetBackingFieldName="_inventargegenstand" targetAutoProperty="true" isTargetAbstract="false" targetAutoInclude="false" sourcePropertyName="Fach" sourceImplementNotify="false" sourceBackingFieldName="_fach" sourceAutoProperty="true" isSourceAbstract="false" sourceAutoInclude="false">
-            <modelClassMoniker Id="7920385f-d3e5-4538-9300-d76f3ed1ddf2" />
+          <bidirectionalAssociation Id="c0d534e0-f2bb-40fd-a170-8f09c7606753" targetPropertyName="BenutzerFach" collectionClass="HashSet" sourceRole="Principal" targetRole="Dependent" foreignKeyLocation="None" targetImplementNotify="false" targetBackingFieldName="_benutzerFach" targetAutoProperty="true" isTargetAbstract="false" targetAutoInclude="false" sourcePropertyName="Fach" sourceImplementNotify="false" sourceBackingFieldName="_fach" sourceAutoProperty="true" isSourceAbstract="false" sourceAutoInclude="false">
+            <modelClassMoniker Id="7aa5b7cc-4283-4269-8170-f63aa46082b0" />
           </bidirectionalAssociation>
         </bidirectionalTargets>
       </modelClass>
@@ -76,8 +76,11 @@
           <bidirectionalAssociation Id="fdad2d62-00e9-4a2d-ad51-c931069a50b6" targetPropertyName="Ausleihe" collectionClass="HashSet" sourceRole="Principal" targetRole="Dependent" foreignKeyLocation="None" targetImplementNotify="false" targetBackingFieldName="_ausleihe" targetAutoProperty="true" isTargetAbstract="false" targetAutoInclude="false" sourcePropertyName="Benutzer" sourceImplementNotify="false" sourceBackingFieldName="_benutzer" sourceAutoProperty="true" isSourceAbstract="false" sourceAutoInclude="false">
             <modelClassMoniker Id="69edd1c2-fcb1-4910-b1f1-4dbedfd137d6" />
           </bidirectionalAssociation>
-          <bidirectionalAssociation Id="275b4b62-d0ad-4f46-8955-3800ef8565d4" sourceMultiplicity="ZeroMany" targetPropertyName="Fach" collectionClass="HashSet" foreignKeyLocation="None" targetImplementNotify="false" targetBackingFieldName="_fach" targetAutoProperty="true" isTargetAbstract="false" targetAutoInclude="false" sourcePropertyName="Benutzer" sourceImplementNotify="false" sourceBackingFieldName="_benutzer" sourceAutoProperty="true" isSourceAbstract="false" sourceAutoInclude="false">
-            <modelClassMoniker Id="a2cbe149-53a8-4fc2-acb7-764151d53851" />
+          <bidirectionalAssociation Id="b5e6261b-3b01-43ec-84de-337feeac5755" targetPropertyName="BenutzerFach" collectionClass="HashSet" sourceRole="Principal" targetRole="Dependent" foreignKeyLocation="None" targetImplementNotify="false" targetBackingFieldName="_benutzerFach" targetAutoProperty="true" isTargetAbstract="false" targetAutoInclude="false" sourcePropertyName="Benutzer" sourceImplementNotify="false" sourceBackingFieldName="_benutzer" sourceAutoProperty="true" isSourceAbstract="false" sourceAutoInclude="false">
+            <modelClassMoniker Id="7aa5b7cc-4283-4269-8170-f63aa46082b0" />
+          </bidirectionalAssociation>
+          <bidirectionalAssociation Id="87930a19-905d-4ffc-b1e0-46d5a385ac11" targetPropertyName="BenutzerRolle" collectionClass="HashSet" sourceRole="Principal" targetRole="Dependent" foreignKeyLocation="None" targetImplementNotify="false" targetBackingFieldName="_benutzerRolle" targetAutoProperty="true" isTargetAbstract="false" targetAutoInclude="false" sourcePropertyName="Benutzer" sourceImplementNotify="false" sourceBackingFieldName="_benutzer" sourceAutoProperty="true" isSourceAbstract="false" sourceAutoInclude="false">
+            <modelClassMoniker Id="f47d897f-f182-482d-89b4-5200c5ccd4f6" />
           </bidirectionalAssociation>
         </bidirectionalTargets>
       </modelClass>
@@ -119,6 +122,20 @@
           <modelAttribute Id="2184fc4e-f0df-403c-8450-1ccc97c25cb9" type="DateTime" required="true" maxLength="" indexed="false" indexedUnique="false" stringType="None" name="VonDatum" autoProperty="true" minLength="0" columnName="VonDatum" columnType="default" implementNotify="false" isForeignKeyFor="00000000-0000-0000-0000-000000000000" backingFieldName="_vonDatum" databaseCollation="default" propertyAccessMode="Field" isPropertyAccessModeTracking="false" />
           <modelAttribute Id="4b08b516-7cc0-4b8c-b709-c332f354a49c" type="DateTime" required="true" maxLength="" indexed="false" indexedUnique="false" stringType="None" name="BisDatum" autoProperty="true" minLength="0" columnName="BisDatum" columnType="default" implementNotify="false" isForeignKeyFor="00000000-0000-0000-0000-000000000000" backingFieldName="_bisDatum" databaseCollation="default" propertyAccessMode="Field" isPropertyAccessModeTracking="false" />
           <modelAttribute Id="8999121f-9c8a-4735-b6f9-4559363e9e65" maxLength="" indexed="false" indexedUnique="false" stringType="None" name="Bemerkung" autoProperty="true" minLength="0" columnName="Bemerkung" columnType="default" implementNotify="false" isForeignKeyFor="00000000-0000-0000-0000-000000000000" backingFieldName="_bemerkung" databaseCollation="default" propertyAccessMode="Field" isPropertyAccessModeTracking="false" />
+        </attributes>
+      </modelClass>
+    </modelRootHasClasses>
+    <modelRootHasClasses Id="2ce99929-b195-4f03-a404-de687e3ed67d">
+      <modelClass Id="7aa5b7cc-4283-4269-8170-f63aa46082b0" tableName="BenutzerFach" databaseSchema="dbo" namespace="Inventarverwaltung1" dbSetName="BenutzerFach" name="BenutzerFach" outputDirectory="" autoPropertyDefault="true" excludeFromMigrations="false" isAssociationClass="false" describedAssociationElementId="00000000-0000-0000-0000-000000000000" inheritanceStrategy="TablePerHierarchy" UseTemporalTables="false" temporalTableOptions="">
+        <attributes>
+          <modelAttribute Id="9b97c341-b2d5-4944-a9e5-d806be9abfcc" type="Int64" isIdentity="true" required="true" maxLength="" indexed="true" indexedUnique="true" stringType="None" identityType="AutoGenerated" summary="Unique identifier" name="Id" autoProperty="true" minLength="0" columnName="Id" columnType="default" implementNotify="false" isForeignKeyFor="00000000-0000-0000-0000-000000000000" backingFieldName="_id" databaseCollation="default" />
+        </attributes>
+      </modelClass>
+    </modelRootHasClasses>
+    <modelRootHasClasses Id="c95f65f9-4185-45a4-826d-4fb0ae277f74">
+      <modelClass Id="f47d897f-f182-482d-89b4-5200c5ccd4f6" tableName="BenutzerRolle" databaseSchema="dbo" namespace="Inventarverwaltung1" dbSetName="BenutzerRolle" name="BenutzerRolle" outputDirectory="" autoPropertyDefault="true" excludeFromMigrations="false" isAssociationClass="false" describedAssociationElementId="00000000-0000-0000-0000-000000000000" inheritanceStrategy="TablePerHierarchy" UseTemporalTables="false" temporalTableOptions="">
+        <attributes>
+          <modelAttribute Id="7acb2558-2c28-4f0d-aaad-1055ec58d79f" type="Int64" isIdentity="true" required="true" maxLength="" indexed="true" indexedUnique="true" stringType="None" identityType="AutoGenerated" summary="Unique identifier" name="Id" autoProperty="true" minLength="0" columnName="Id" columnType="default" implementNotify="false" isForeignKeyFor="00000000-0000-0000-0000-000000000000" backingFieldName="_id" databaseCollation="default" />
         </attributes>
       </modelClass>
     </modelRootHasClasses>

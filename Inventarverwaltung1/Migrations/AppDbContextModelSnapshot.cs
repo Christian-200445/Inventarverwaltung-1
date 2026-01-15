@@ -7,9 +7,6 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Inventarverwaltung1.Migrations
-{
-    [DbContext(typeof(AppDbContext))]
     partial class AppDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
@@ -23,4 +20,4 @@ namespace Inventarverwaltung1.Migrations
 #pragma warning restore 612, 618
         }
     }
-}
+

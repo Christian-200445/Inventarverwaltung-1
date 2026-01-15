@@ -10,7 +10,6 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Inventarverwaltung1.Migrations
 {
-    [DbContext(typeof(AppDbContext))]
     [Migration("20260114091704_InitialCreate")]
     partial class InitialCreate
     {

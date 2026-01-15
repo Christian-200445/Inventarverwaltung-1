@@ -1,8 +1,4 @@
 ﻿@page "/"
-
-<!-- ========================================================= -->
-<!-- FULL WIDTH PAGE WRAPPER -->
-<!-- ========================================================= -->
 <div style="
     width: 100%;
     background: #ffffff;
@@ -11,11 +7,6 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.10);
     box-sizing: border-box;
 ">
-
-
-    <!-- ========================================================= -->
-    <!-- HEADER (Logo + Titel) -->
-    <!-- ========================================================= -->
     <div style="
         width: 100%;
         height: 85px;
@@ -44,10 +35,6 @@
         </h1>
     </div>
 
-
-    <!-- ========================================================= -->
-    <!-- GRID WRAPPER -->
-    <!-- ========================================================= -->
     <div style="
         width: 100%;
         background: #ffffff;
@@ -56,10 +43,6 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.10);
         box-sizing: border-box;
     ">
-
-        <!-- ========================================================= -->
-        <!-- DATA GRID -->
-        <!-- ========================================================= -->
         <RadzenDataGrid @bind-Value="@selectedItems"
                         Data="@data"
                         TItem="IDictionary<string, object>"
@@ -100,36 +83,21 @@
 
 @code
 {
-    // =========================================================
-    // FIELDS
-    // =========================================================
     IList<IDictionary<string, object>> selectedItems;
 
     public IEnumerable<IDictionary<string, object>> data { get; set; }
 
     public IDictionary<string, Type> columns { get; set; }
 
-
-    // =========================================================
-    // ENUMS (falls später benötigt)
-    // =========================================================
     public enum EnumTest
     {
         EnumValue1,
         EnumValue2
     }
 
-
-    // =========================================================
-    // INITIALISIERUNG
-    // =========================================================
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-
-        // -------------------------------------
-        // COLUMNS DEFINITION
-        // -------------------------------------
         columns = new Dictionary<string, Type>()
         {
             { "InventarID", typeof(int) },
@@ -143,10 +111,6 @@
             { "Rolle", typeof(string) },
             { "Zustand", typeof(string) }
         };
-
-        // -------------------------------------
-        // DUMMY DATA GENERIEREN
-        // -------------------------------------
         data = new List<Dictionary<string, object>>
 {
     new()
