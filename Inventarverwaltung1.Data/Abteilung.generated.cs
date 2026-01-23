@@ -23,7 +23,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace Inventarverwaltung1
+namespace Inventarverwaltung1.Data
 {
    public partial class Abteilung
    {
@@ -34,7 +34,7 @@ namespace Inventarverwaltung1
       /// </summary>
       public Abteilung()
       {
-         Inventargegenstaende = new System.Collections.Generic.HashSet<global::Inventarverwaltung1.Inventargegenstand>();
+         Inventargegenstaende = new System.Collections.Generic.HashSet<global::Inventarverwaltung1.Data.Inventargegenstand>();
 
          Init();
       }
@@ -58,7 +58,7 @@ namespace Inventarverwaltung1
        * Navigation properties
        *************************************************************************/
 
-      public virtual ICollection<global::Inventarverwaltung1.Inventargegenstand> Inventargegenstaende { get; private set; }
+      public virtual ICollection<global::Inventarverwaltung1.Data.Inventargegenstand> Inventargegenstaende { get; private set; }
 
    }
 }

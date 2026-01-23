@@ -23,7 +23,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace Inventarverwaltung1
+namespace Inventarverwaltung1.Data
 {
    public partial class Inventargegenstand
    {
@@ -34,7 +34,7 @@ namespace Inventarverwaltung1
       /// </summary>
       public Inventargegenstand()
       {
-         Ausleihe = new System.Collections.Generic.HashSet<global::Inventarverwaltung1.Ausleihe>();
+         Ausleihe = new System.Collections.Generic.HashSet<global::Inventarverwaltung1.Data.Ausleihe>();
 
          Init();
       }
@@ -47,7 +47,7 @@ namespace Inventarverwaltung1
       /// <param name="gruppe"></param>
       /// <param name="zustand"></param>
       /// <param name="abteilung"></param>
-      public Inventargegenstand(string seriennummer, string beschreibung, global::Inventarverwaltung1.Gruppe gruppe, global::Inventarverwaltung1.Zustand zustand, global::Inventarverwaltung1.Abteilung abteilung)
+      public Inventargegenstand(string seriennummer, string beschreibung, global::Inventarverwaltung1.Data.Gruppe gruppe, global::Inventarverwaltung1.Data.Zustand zustand, global::Inventarverwaltung1.Data.Abteilung abteilung)
       {
          if (string.IsNullOrEmpty(seriennummer)) throw new ArgumentNullException(nameof(seriennummer));
          this.Seriennummer = seriennummer;
@@ -67,7 +67,7 @@ namespace Inventarverwaltung1
          this.Abteilung = abteilung;
          abteilung.Inventargegenstaende.Add(this);
 
-         Ausleihe = new System.Collections.Generic.HashSet<global::Inventarverwaltung1.Ausleihe>();
+         Ausleihe = new System.Collections.Generic.HashSet<global::Inventarverwaltung1.Data.Ausleihe>();
          Init();
       }
 
@@ -79,7 +79,7 @@ namespace Inventarverwaltung1
       /// <param name="gruppe"></param>
       /// <param name="zustand"></param>
       /// <param name="abteilung"></param>
-      public static Inventargegenstand Create(string seriennummer, string beschreibung, global::Inventarverwaltung1.Gruppe gruppe, global::Inventarverwaltung1.Zustand zustand, global::Inventarverwaltung1.Abteilung abteilung)
+      public static Inventargegenstand Create(string seriennummer, string beschreibung, global::Inventarverwaltung1.Data.Gruppe gruppe, global::Inventarverwaltung1.Data.Zustand zustand, global::Inventarverwaltung1.Data.Abteilung abteilung)
       {
          return new Inventargegenstand(seriennummer, beschreibung, gruppe, zustand, abteilung);
       }
@@ -122,21 +122,21 @@ namespace Inventarverwaltung1
       /// <summary>
       /// Required
       /// </summary>
-      public virtual global::Inventarverwaltung1.Abteilung Abteilung { get; set; }
+      public virtual global::Inventarverwaltung1.Data.Abteilung Abteilung { get; set; }
 
-      public virtual ICollection<global::Inventarverwaltung1.Ausleihe> Ausleihe { get; private set; }
-
-      /// <summary>
-      /// Required
-      /// </summary>
-      public virtual global::Inventarverwaltung1.Gruppe Gruppe { get; set; }
-
-      public virtual global::Inventarverwaltung1.Ort Ort { get; set; }
+      public virtual ICollection<global::Inventarverwaltung1.Data.Ausleihe> Ausleihe { get; private set; }
 
       /// <summary>
       /// Required
       /// </summary>
-      public virtual global::Inventarverwaltung1.Zustand Zustand { get; set; }
+      public virtual global::Inventarverwaltung1.Data.Gruppe Gruppe { get; set; }
+
+      public virtual global::Inventarverwaltung1.Data.Ort Ort { get; set; }
+
+      /// <summary>
+      /// Required
+      /// </summary>
+      public virtual global::Inventarverwaltung1.Data.Zustand Zustand { get; set; }
 
    }
 }

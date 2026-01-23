@@ -23,7 +23,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace Inventarverwaltung1
+namespace Inventarverwaltung1.Data
 {
    public partial class Ausleihe
    {
@@ -44,7 +44,7 @@ namespace Inventarverwaltung1
       /// <param name="bisdatum"></param>
       /// <param name="benutzer"></param>
       /// <param name="inventargegenstaende"></param>
-      public Ausleihe(DateTime vondatum, DateTime bisdatum, global::Inventarverwaltung1.Benutzer benutzer, global::Inventarverwaltung1.Inventargegenstand inventargegenstaende)
+      public Ausleihe(DateTime vondatum, DateTime bisdatum, global::Inventarverwaltung1.Data.Benutzer benutzer, global::Inventarverwaltung1.Data.Inventargegenstand inventargegenstaende)
       {
          this.VonDatum = vondatum;
 
@@ -68,7 +68,7 @@ namespace Inventarverwaltung1
       /// <param name="bisdatum"></param>
       /// <param name="benutzer"></param>
       /// <param name="inventargegenstaende"></param>
-      public static Ausleihe Create(DateTime vondatum, DateTime bisdatum, global::Inventarverwaltung1.Benutzer benutzer, global::Inventarverwaltung1.Inventargegenstand inventargegenstaende)
+      public static Ausleihe Create(DateTime vondatum, DateTime bisdatum, global::Inventarverwaltung1.Data.Benutzer benutzer, global::Inventarverwaltung1.Data.Inventargegenstand inventargegenstaende)
       {
          return new Ausleihe(vondatum, bisdatum, benutzer, inventargegenstaende);
       }
@@ -107,12 +107,12 @@ namespace Inventarverwaltung1
       /// <summary>
       /// Required
       /// </summary>
-      public virtual global::Inventarverwaltung1.Benutzer Benutzer { get; set; }
+      public virtual global::Inventarverwaltung1.Data.Benutzer Benutzer { get; set; }
 
       /// <summary>
       /// Required
       /// </summary>
-      public virtual global::Inventarverwaltung1.Inventargegenstand Inventargegenstaende { get; set; }
+      public virtual global::Inventarverwaltung1.Data.Inventargegenstand Inventargegenstaende { get; set; }
 
    }
 }

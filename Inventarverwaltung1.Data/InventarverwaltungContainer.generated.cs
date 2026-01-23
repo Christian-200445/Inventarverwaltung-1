@@ -19,21 +19,21 @@ using System.Linq;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Inventarverwaltung1
+namespace Inventarverwaltung1.Data
 {
    /// <inheritdoc/>
    public partial class InventarverwaltungContainer : DbContext
    {
       #region DbSets
-      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Abteilung> Abteilung { get; set; }
-      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Ausleihe> Ausleihe { get; set; }
-      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Benutzer> Benutzer { get; set; }
-      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Fach> Fach { get; set; }
-      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Gruppe> Gruppe { get; set; }
-      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Inventargegenstand> Inventargegenstand { get; set; }
-      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Ort> Ort { get; set; }
-      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Rolle> Rolle { get; set; }
-      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Zustand> Zustand { get; set; }
+      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Data.Abteilung> Abteilung { get; set; }
+      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Data.Ausleihe> Ausleihe { get; set; }
+      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Data.Benutzer> Benutzer { get; set; }
+      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Data.Fach> Fach { get; set; }
+      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Data.Gruppe> Gruppe { get; set; }
+      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Data.Inventargegenstand> Inventargegenstand { get; set; }
+      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Data.Ort> Ort { get; set; }
+      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Data.Rolle> Rolle { get; set; }
+      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Data.Zustand> Zustand { get; set; }
 
       #endregion DbSets
 
@@ -55,14 +55,6 @@ namespace Inventarverwaltung1
       }
 
       partial void CustomInit(DbContextOptionsBuilder optionsBuilder);
-
-      /// <inheritdoc />
-      protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-      {
-         optionsBuilder.UseLazyLoadingProxies();
-
-         CustomInit(optionsBuilder);
-      }
 
       partial void OnModelCreatingImpl(ModelBuilder modelBuilder);
       partial void OnModelCreatedImpl(ModelBuilder modelBuilder);
@@ -88,126 +80,130 @@ namespace Inventarverwaltung1
 
          modelBuilder.HasDefaultSchema("dbo");
 
-         modelBuilder.Entity<global::Inventarverwaltung1.Abteilung>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Abteilung>()
                      .ToTable("Abteilung")
                      .HasKey(t => t.Id);
-         modelBuilder.Entity<global::Inventarverwaltung1.Abteilung>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Abteilung>()
                      .Property(t => t.Id)
                      .ValueGeneratedOnAdd()
                      .IsRequired();
-         modelBuilder.Entity<global::Inventarverwaltung1.Abteilung>()
-                     .HasMany<global::Inventarverwaltung1.Inventargegenstand>(p => p.Inventargegenstaende)
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Abteilung>()
+                     .HasMany<global::Inventarverwaltung1.Data.Inventargegenstand>(p => p.Inventargegenstaende)
                      .WithOne(p => p.Abteilung)
                      .HasForeignKey("AbteilungId")
                      .IsRequired();
 
-         modelBuilder.Entity<global::Inventarverwaltung1.Ausleihe>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Ausleihe>()
                      .ToTable("Ausleihe")
                      .HasKey(t => t.Id);
-         modelBuilder.Entity<global::Inventarverwaltung1.Ausleihe>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Ausleihe>()
                      .Property(t => t.Id)
                      .ValueGeneratedOnAdd()
                      .IsRequired();
-         modelBuilder.Entity<global::Inventarverwaltung1.Ausleihe>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Ausleihe>()
                      .Property(t => t.VonDatum)
                      .IsRequired();
-         modelBuilder.Entity<global::Inventarverwaltung1.Ausleihe>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Ausleihe>()
                      .Property(t => t.BisDatum)
                      .IsRequired();
 
-         modelBuilder.Entity<global::Inventarverwaltung1.Benutzer>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Benutzer>()
                      .ToTable("Benutzer")
                      .HasKey(t => t.Id);
-         modelBuilder.Entity<global::Inventarverwaltung1.Benutzer>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Benutzer>()
                      .Property(t => t.Id)
                      .ValueGeneratedOnAdd()
                      .IsRequired();
-         modelBuilder.Entity<global::Inventarverwaltung1.Benutzer>()
-                     .HasMany<global::Inventarverwaltung1.Ausleihe>(p => p.Ausleihen)
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Benutzer>()
+                     .HasMany<global::Inventarverwaltung1.Data.Ausleihe>(p => p.Ausleihen)
                      .WithOne(p => p.Benutzer)
                      .HasForeignKey("BenutzerId")
                      .IsRequired();
 
-         modelBuilder.Entity<global::Inventarverwaltung1.Fach>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Fach>()
                      .ToTable("Fach")
                      .HasKey(t => t.Id);
-         modelBuilder.Entity<global::Inventarverwaltung1.Fach>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Fach>()
                      .Property(t => t.Id)
                      .ValueGeneratedOnAdd()
                      .IsRequired();
-         modelBuilder.Entity<global::Inventarverwaltung1.Fach>()
-                     .HasMany<global::Inventarverwaltung1.Benutzer>(p => p.Benutzer)
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Fach>()
+                     .HasMany<global::Inventarverwaltung1.Data.Benutzer>(p => p.Benutzer)
                      .WithMany(p => p.Faecher)
-                     .UsingEntity<Dictionary<string, object>>(right => right.HasOne<global::Inventarverwaltung1.Benutzer>().WithMany().HasForeignKey("Benutzer_Id").OnDelete(DeleteBehavior.Cascade),left => left.HasOne<global::Inventarverwaltung1.Fach>().WithMany().HasForeignKey("Fach_Id").OnDelete(DeleteBehavior.Cascade),join => join.ToTable("Benutzer_x_Fach"));
+                     .UsingEntity<Dictionary<string, object>>(right => right.HasOne<global::Inventarverwaltung1.Data.Benutzer>().WithMany().HasForeignKey("Benutzer_Id").OnDelete(DeleteBehavior.Cascade),left => left.HasOne<global::Inventarverwaltung1.Data.Fach>().WithMany().HasForeignKey("Fach_Id").OnDelete(DeleteBehavior.Cascade),join => join.ToTable("Benutzer_x_Fach"));
 
-         modelBuilder.Entity<global::Inventarverwaltung1.Gruppe>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Gruppe>()
                      .ToTable("Gruppe")
                      .HasKey(t => t.Id);
-         modelBuilder.Entity<global::Inventarverwaltung1.Gruppe>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Gruppe>()
                      .Property(t => t.Id)
                      .ValueGeneratedOnAdd()
                      .IsRequired();
-         modelBuilder.Entity<global::Inventarverwaltung1.Gruppe>()
-                     .HasMany<global::Inventarverwaltung1.Inventargegenstand>(p => p.Inventargegenstaende)
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Gruppe>()
+                     .HasMany<global::Inventarverwaltung1.Data.Inventargegenstand>(p => p.Inventargegenstaende)
                      .WithOne(p => p.Gruppe)
                      .HasForeignKey("GruppeId")
                      .IsRequired();
 
-         modelBuilder.Entity<global::Inventarverwaltung1.Inventargegenstand>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Inventargegenstand>()
                      .ToTable("Inventargegenstand")
                      .HasKey(t => t.Id);
-         modelBuilder.Entity<global::Inventarverwaltung1.Inventargegenstand>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Inventargegenstand>()
                      .Property(t => t.Seriennummer)
                      .IsRequired();
-         modelBuilder.Entity<global::Inventarverwaltung1.Inventargegenstand>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Inventargegenstand>()
                      .Property(t => t.Id)
                      .ValueGeneratedOnAdd()
                      .IsRequired();
-         modelBuilder.Entity<global::Inventarverwaltung1.Inventargegenstand>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Inventargegenstand>()
                      .Property(t => t.Beschreibung)
                      .IsRequired();
-         modelBuilder.Entity<global::Inventarverwaltung1.Inventargegenstand>()
-                     .HasMany<global::Inventarverwaltung1.Ausleihe>(p => p.Ausleihe)
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Inventargegenstand>()
+                     .HasMany<global::Inventarverwaltung1.Data.Ausleihe>(p => p.Ausleihe)
                      .WithOne(p => p.Inventargegenstaende)
                      .HasForeignKey("InventargegenstaendeId")
                      .IsRequired();
 
-         modelBuilder.Entity<global::Inventarverwaltung1.Ort>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Ort>()
                      .ToTable("Ort")
                      .HasKey(t => t.Id);
-         modelBuilder.Entity<global::Inventarverwaltung1.Ort>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Ort>()
                      .Property(t => t.Id)
                      .ValueGeneratedOnAdd()
                      .IsRequired();
-         modelBuilder.Entity<global::Inventarverwaltung1.Ort>()
-                     .HasMany<global::Inventarverwaltung1.Inventargegenstand>(p => p.Inventargegenstaende)
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Ort>()
+                     .HasMany<global::Inventarverwaltung1.Data.Inventargegenstand>(p => p.Inventargegenstaende)
                      .WithOne(p => p.Ort)
                      .HasForeignKey("OrtId");
 
-         modelBuilder.Entity<global::Inventarverwaltung1.Rolle>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Rolle>()
                      .ToTable("Rolle")
                      .HasKey(t => t.Id);
-         modelBuilder.Entity<global::Inventarverwaltung1.Rolle>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Rolle>()
                      .Property(t => t.Id)
                      .ValueGeneratedOnAdd()
                      .IsRequired();
-         modelBuilder.Entity<global::Inventarverwaltung1.Rolle>()
-                     .HasMany<global::Inventarverwaltung1.Benutzer>(p => p.Benutzer)
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Rolle>()
+                     .HasMany<global::Inventarverwaltung1.Data.Benutzer>(p => p.Benutzer)
                      .WithMany(p => p.Rollen)
-                     .UsingEntity<Dictionary<string, object>>(right => right.HasOne<global::Inventarverwaltung1.Benutzer>().WithMany().HasForeignKey("Benutzer_Id").OnDelete(DeleteBehavior.Cascade),left => left.HasOne<global::Inventarverwaltung1.Rolle>().WithMany().HasForeignKey("Rolle_Id").OnDelete(DeleteBehavior.Cascade),join => join.ToTable("Benutzer_x_Rolle"));
+                     .UsingEntity<Dictionary<string, object>>(right => right.HasOne<global::Inventarverwaltung1.Data.Benutzer>().WithMany().HasForeignKey("Benutzer_Id").OnDelete(DeleteBehavior.Cascade),left => left.HasOne<global::Inventarverwaltung1.Data.Rolle>().WithMany().HasForeignKey("Rolle_Id").OnDelete(DeleteBehavior.Cascade),join => join.ToTable("Benutzer_x_Rolle"));
 
-         modelBuilder.Entity<global::Inventarverwaltung1.Zustand>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Zustand>()
                      .ToTable("Zustand")
                      .HasKey(t => t.Id);
-         modelBuilder.Entity<global::Inventarverwaltung1.Zustand>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Zustand>()
                      .Property(t => t.Id)
                      .ValueGeneratedOnAdd()
                      .IsRequired();
-         modelBuilder.Entity<global::Inventarverwaltung1.Zustand>()
-                     .HasMany<global::Inventarverwaltung1.Inventargegenstand>(p => p.Inventargegenstaende)
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Zustand>()
+                     .HasMany<global::Inventarverwaltung1.Data.Inventargegenstand>(p => p.Inventargegenstaende)
                      .WithOne(p => p.Zustand)
                      .HasForeignKey("ZustandId")
                      .IsRequired();
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Zustand>()
+                     .HasMany<global::Inventarverwaltung1.Data.Benutzer>(p => p.Benutzer)
+                     .WithMany(p => p.Zustand)
+                     .UsingEntity<Dictionary<string, object>>(right => right.HasOne<global::Inventarverwaltung1.Data.Benutzer>().WithMany().HasForeignKey("Benutzer_Id").OnDelete(DeleteBehavior.Cascade),left => left.HasOne<global::Inventarverwaltung1.Data.Zustand>().WithMany().HasForeignKey("Zustand_Id").OnDelete(DeleteBehavior.Cascade),join => join.ToTable("Benutzer_x_Zustand"));
 
          OnModelCreatedImpl(modelBuilder);
       }

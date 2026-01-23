@@ -23,7 +23,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace Inventarverwaltung1
+namespace Inventarverwaltung1.Data
 {
    public partial class Benutzer
    {
@@ -34,9 +34,10 @@ namespace Inventarverwaltung1
       /// </summary>
       public Benutzer()
       {
-         Ausleihen = new System.Collections.Generic.HashSet<global::Inventarverwaltung1.Ausleihe>();
-         Rollen = new System.Collections.Generic.HashSet<global::Inventarverwaltung1.Rolle>();
-         Faecher = new System.Collections.Generic.HashSet<global::Inventarverwaltung1.Fach>();
+         Ausleihen = new System.Collections.Generic.HashSet<global::Inventarverwaltung1.Data.Ausleihe>();
+         Rollen = new System.Collections.Generic.HashSet<global::Inventarverwaltung1.Data.Rolle>();
+         Faecher = new System.Collections.Generic.HashSet<global::Inventarverwaltung1.Data.Fach>();
+         Zustand = new System.Collections.Generic.HashSet<global::Inventarverwaltung1.Data.Zustand>();
 
          Init();
       }
@@ -58,11 +59,13 @@ namespace Inventarverwaltung1
        * Navigation properties
        *************************************************************************/
 
-      public virtual ICollection<global::Inventarverwaltung1.Ausleihe> Ausleihen { get; private set; }
+      public virtual ICollection<global::Inventarverwaltung1.Data.Ausleihe> Ausleihen { get; private set; }
 
-      public virtual ICollection<global::Inventarverwaltung1.Fach> Faecher { get; private set; }
+      public virtual ICollection<global::Inventarverwaltung1.Data.Fach> Faecher { get; private set; }
 
-      public virtual ICollection<global::Inventarverwaltung1.Rolle> Rollen { get; private set; }
+      public virtual ICollection<global::Inventarverwaltung1.Data.Rolle> Rollen { get; private set; }
+
+      public virtual ICollection<global::Inventarverwaltung1.Data.Zustand> Zustand { get; private set; }
 
    }
 }

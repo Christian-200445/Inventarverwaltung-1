@@ -23,7 +23,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace Inventarverwaltung1
+namespace Inventarverwaltung1.Data
 {
    public partial class Fach
    {
@@ -34,7 +34,7 @@ namespace Inventarverwaltung1
       /// </summary>
       public Fach()
       {
-         Benutzer = new System.Collections.Generic.HashSet<global::Inventarverwaltung1.Benutzer>();
+         Benutzer = new System.Collections.Generic.HashSet<global::Inventarverwaltung1.Data.Benutzer>();
 
          Init();
       }
@@ -58,7 +58,7 @@ namespace Inventarverwaltung1
        * Navigation properties
        *************************************************************************/
 
-      public virtual ICollection<global::Inventarverwaltung1.Benutzer> Benutzer { get; private set; }
+      public virtual ICollection<global::Inventarverwaltung1.Data.Benutzer> Benutzer { get; private set; }
 
    }
 }
