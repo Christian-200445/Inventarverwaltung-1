@@ -2,15 +2,11 @@
 
 @using System.Text
 @using System.Linq
-@using System.Collections.Generic
-@using System.Threading.Tasks
-@using Microsoft.AspNetCore.Components
-@using Microsoft.JSInterop
 @using Radzen
 @using Radzen.Blazor
-
 @inject NotificationService NotificationService
 @inject IJSRuntime JS
+@inject NavigationManager Nav
 
 <style>
     :root {
@@ -18,7 +14,7 @@
         --card: #ffffff;
         --muted: #6b7280;
         --text: #111827;
-        --line: rgba(17,24,39,.08);
+        --line: rgba(17,24,39,.10);
         --shadow: 0 16px 40px rgba(17,24,39,.10);
         --shadow2: 0 10px 24px rgba(17,24,39,.08);
         --blue1: #122b73;
@@ -43,26 +39,29 @@
         max-width: 1320px;
         margin: 0 auto;
     }
+
+    /*Topbar*/
     .top {
-        border-radius: calc(var(--radius) + 6px);
+        border-radius: 26px;
         padding: 16px;
         background: linear-gradient(95deg, var(--blue1), var(--blue2) 55%, var(--blue3));
         box-shadow: var(--shadow);
         color: #fff;
-        display: grid;
-        grid-template-columns: 1fr auto;
-        align-items: center;
-        gap: 14px;
         position: relative;
         overflow: hidden;
+        min-height: 92px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
     }
 
         .top:before {
             content: "";
             position: absolute;
             inset: -120px -120px auto auto;
-            width: 320px;
-            height: 320px;
+            width: 340px;
+            height: 340px;
             background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.18), transparent 60%);
             transform: rotate(8deg);
             pointer-events: none;
@@ -71,28 +70,29 @@
     .brand {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 14px;
         z-index: 1;
         min-width: 0;
     }
 
-    .logo {
-        width: 46px;
-        height: 46px;
-        border-radius: 16px;
+    .logoBox {
+        width: 54px;
+        height: 54px;
+        border-radius: 18px;
         background: rgba(255,255,255,.16);
-        display: grid;
-        place-items: center;
         border: 1px solid rgba(255,255,255,.22);
         box-shadow: 0 10px 22px rgba(0,0,0,.10);
+        display: grid;
+        place-items: center;
         flex: 0 0 auto;
+        overflow: hidden;
     }
 
     .title {
         font-size: 22px;
         font-weight: 900;
         letter-spacing: .01em;
-        line-height: 1.05;
+        line-height: 1.1;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -121,48 +121,74 @@
         white-space: nowrap;
     }
 
-    .pill {
-        z-index: 1;
+    /*Avatar und Menu*/
+    .iv-user {
+        position: relative;
+        z-index: 1000;
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 10px 12px;
-        border-radius: 999px;
-        background: rgba(255,255,255,.14);
-        border: 1px solid rgba(255,255,255,.20);
-        backdrop-filter: blur(8px);
-        box-shadow: 0 10px 22px rgba(0,0,0,.12);
-        min-width: 340px;
-        justify-content: flex-end;
     }
 
-    .avatar {
-        width: 36px;
-        height: 36px;
+    .iv-avatar {
+        width: 42px;
+        height: 42px;
         border-radius: 999px;
-        background: rgba(255,255,255,.22);
+        border: 1px solid rgba(255,255,255,.25);
+        background: rgba(255,255,255,.18);
+        color: #fff;
+        font-weight: 900;
+        cursor: pointer;
+        box-shadow: 0 10px 18px rgba(0,0,0,.12);
         display: grid;
         place-items: center;
-        border: 1px solid rgba(255,255,255,.25);
-        font-weight: 900;
-        box-shadow: 0 10px 18px rgba(0,0,0,.12);
-        flex: 0 0 auto;
+        user-select: none;
     }
 
-    .roleLine {
-        font-size: 12px;
-        opacity: .95;
-        display: flex;
-        gap: 8px;
-        align-items: center;
-        justify-content: flex-end;
-        margin-top: 2px;
+    .iv-menu {
+        position: fixed;
+        top: 110px;
+        right: 38px;
+        width: 180px;
+        background: #fff;
+        border: 1px solid rgba(0,0,0,.10);
+        border-radius: 14px;
+        box-shadow: 0 14px 36px rgba(0,0,0,.12);
+        padding: 10px;
+        z-index: 999999;
     }
+
+    .iv-menu-name {
+        font-weight: 900;
+        color: #111827;
+    }
+
+    .iv-menu-sub {
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 10px;
+    }
+
+    .iv-logout {
+        width: 100%;
+        border: none;
+        border-radius: 12px;
+        padding: 10px 12px;
+        cursor: pointer;
+        font-weight: 800;
+        background: #ef4444;
+        color: white;
+    }
+
+        .iv-logout:hover {
+            filter: brightness(1.05);
+        }
+
+    /*KPI Cards*/
     .kpis {
-        margin-top: 14px;
+        margin-top: 16px;
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 12px;
+        grid-template-columns: repeat(4, minmax(0,1fr));
+        gap: 14px;
     }
 
     .kpi {
@@ -171,14 +197,8 @@
         border-radius: var(--radius);
         box-shadow: var(--shadow2);
         padding: 14px;
-        transition: transform .15s ease, box-shadow .15s ease;
         overflow: hidden;
     }
-
-        .kpi:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 18px 40px rgba(17,24,39,.12);
-        }
 
     .kpiTop {
         display: flex;
@@ -188,14 +208,14 @@
     }
 
     .kpiIcon {
-        width: 34px;
-        height: 34px;
-        border-radius: 14px;
+        width: 38px;
+        height: 38px;
+        border-radius: 16px;
         display: grid;
         place-items: center;
         background: rgba(47,99,230,.10);
         border: 1px solid rgba(47,99,230,.12);
-        font-size: 16px;
+        font-size: 18px;
     }
 
     .kpi .label {
@@ -216,26 +236,13 @@
         margin-top: 2px;
     }
 
-    .kpiBar {
-        margin-top: 10px;
-        height: 6px;
-        border-radius: 999px;
-        background: rgba(17,24,39,.06);
-        overflow: hidden;
-    }
-
-        .kpiBar > span {
-            display: block;
-            height: 100%;
-            width: 62%;
-            background: linear-gradient(90deg, rgba(47,99,230,.35), rgba(89,167,255,.70));
-            border-radius: 999px;
-        }
+    /*Layout Cards*/
     .grid {
         margin-top: 14px;
         display: grid;
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
         gap: 14px;
+        align-items: start;
     }
 
     .card {
@@ -244,13 +251,6 @@
         border-radius: var(--radius);
         box-shadow: var(--shadow2);
         padding: 14px;
-    }
-
-    .row2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px;
-        align-items: start;
     }
 
     .sectionHead {
@@ -288,7 +288,7 @@
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
-        align-items: center;
+        align-items: flex-end;
         justify-content: flex-end;
     }
 
@@ -306,28 +306,29 @@
         border-radius: 12px !important;
     }
 
+    .rz-textbox {
+        border-radius: 12px !important;
+    }
+
     .rz-datatable, .rz-data-grid {
         border-radius: 14px !important;
         overflow: hidden;
     }
+
     media (max-width: 980px) {
         .kpis {
             grid-template-columns: 1fr 1fr;
         }
 
-        .row2 {
+        .grid {
             grid-template-columns: 1fr;
-        }
-
-        .pill {
-            min-width: auto;
         }
 
         .top {
-            grid-template-columns: 1fr;
+            flex-direction: column;
+            align-items: flex-start;
         }
     }
-
     media (max-width: 520px) {
         .kpis {
             grid-template-columns: 1fr;
@@ -340,35 +341,23 @@
 
         <div class="top">
             <div class="brand">
-                <div class="logo" aria-hidden="true">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                        <path d="M4 7h16M7 7V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2M6 7v14h12V7"
-                              stroke="white" stroke-width="2" stroke-linecap="round" />
-                    </svg>
-                </div>
+
                 <div style="min-width:0">
-                    <div class="title">Admin · Inventarverwaltung</div>
-                    <div class="sub">
-                        <span class="chip">🛡️ Admin-Funktionen</span>
-                        <span class="chip">⚡ Inline bearbeiten</span>
-                        <span class="chip">⬇️ Export CSV / Clipboard</span>
-                    </div>
+                    <div class="title">Admin-Dashboard</div>
                 </div>
             </div>
 
-            <div class="pill">
-                <div class="avatar">@GetInitials(CurrentUserName)</div>
-                <div style="text-align:right">
-                    <div style="font-weight:900;line-height:1">@CurrentUserName</div>
-                    <div class="roleLine">
-                        Rolle:
-                        <RadzenDropDown TValue="string"
-                                        Data="@Roles"
-                                        @bind-Value="@SelectedRole"
-                                        Change="@OnRoleChanged"
-                                        Style="width:170px;background:transparent;color:white;border:0;font-weight:900" />
+            <div class="iv-user">
+                <div class="iv-avatar" @onclick="ToggleMenu">@GetInitials(CurrentUserName)</div>
+
+                @if (ShowMenu)
+                {
+                    <div class="iv-menu">
+                        <div class="iv-menu-name">@CurrentUserName</div>
+                        <div class="iv-menu-sub">Rolle: Administrator</div>
+                        <button class="iv-logout" @onclick="Logout">Abmelden</button>
                     </div>
-                </div>
+                }
             </div>
         </div>
 
@@ -380,9 +369,8 @@
                         <div class="value">@Users.Count</div>
                         <div class="hint">Konten im System</div>
                     </div>
-                    <div class="kpiIcon" aria-hidden="true">👤</div>
+                    <div class="kpiIcon">👤</div>
                 </div>
-                <div class="kpiBar"><span style="width:72%"></span></div>
             </div>
 
             <div class="kpi">
@@ -392,9 +380,8 @@
                         <div class="value">@Users.Count(u => u.Role == "Administrator")</div>
                         <div class="hint">Vollzugriff</div>
                     </div>
-                    <div class="kpiIcon" aria-hidden="true">🛡️</div>
+                    <div class="kpiIcon"></div>
                 </div>
-                <div class="kpiBar"><span style="width:55%"></span></div>
             </div>
 
             <div class="kpi">
@@ -404,9 +391,8 @@
                         <div class="value">@MasterTypes.Count</div>
                         <div class="hint">Abteilungen, Fächer, …</div>
                     </div>
-                    <div class="kpiIcon" aria-hidden="true">📚</div>
+                    <div class="kpiIcon">📚</div>
                 </div>
-                <div class="kpiBar"><span style="width:64%"></span></div>
             </div>
 
             <div class="kpi">
@@ -416,136 +402,141 @@
                         <div class="value">@MasterRows.Count</div>
                         <div class="hint">@SelectedMasterType</div>
                     </div>
-                    <div class="kpiIcon" aria-hidden="true">🧾</div>
+                    <div class="kpiIcon">🧾</div>
                 </div>
-                <div class="kpiBar"><span style="width:78%"></span></div>
             </div>
         </div>
 
         <div class="grid">
-            <div class="row2">
 
-                <div class="card">
-                    <div class="sectionHead">
-                        <div>
-                            <div class="h3">Nutzerverwaltung</div>
-                            <div class="hint">Inline bearbeiten (kein Dialog). Nur Admin darf speichern.</div>
+            <!-- Nutzer verwalten -->
+            <div class="card">
+                <div class="sectionHead">
+
+                    <div class="actions">
+                        <div style="min-width:240px;">
+                            <label class="fieldLabel">Suche (Name/E-Mail)</label>
+                            <RadzenTextBox Style="width:100%" @bind-Value="@UserSearch" />
                         </div>
 
-                        <div class="actions">
-                            <RadzenButton Text="Neuer Nutzer" Icon="person_add" ButtonStyle="ButtonStyle.Success"
-                                          Disabled="@(!IsAdmin)" Click="@AddUserRow" />
-                            <RadzenButton Text="Änderungen speichern" Icon="save" ButtonStyle="ButtonStyle.Primary"
-                                          Disabled="@(!IsAdmin)" Click="@SaveUsers" />
+                        <div style="min-width:200px;">
+                            <label class="fieldLabel">Rolle</label>
+                            <RadzenDropDown TValue="string"
+                                            Data="@Roles"
+                                            @bind-Value="@UserRoleFilter"
+                                            Style="width:100%" />
                         </div>
+
+                        <RadzenButton Text="Suchen" Icon="search" ButtonStyle="ButtonStyle.Primary" Click="@ApplyUserFilter" />
                     </div>
-
-                    <RadzenDataGrid @ref="_usersGrid"
-                                    TItem="UserRow"
-                                    Data="@Users"
-                                    AllowPaging="true" PageSize="8"
-                                    AllowSorting="true"
-                                    EditMode="DataGridEditMode.Single"
-                                    RowUpdate="@OnUserUpdate"
-                                    RowCreate="@OnUserCreate">
-
-                        <Columns>
-                            <RadzenDataGridColumn TItem="UserRow" Property="Name" Title="Name">
-                                <EditTemplate Context="u">
-                                    <RadzenTextBox Style="width:100%" @bind-Value="u.Name" />
-                                </EditTemplate>
-                            </RadzenDataGridColumn>
-
-                            <RadzenDataGridColumn TItem="UserRow" Property="Email" Title="E-Mail">
-                                <EditTemplate Context="u">
-                                    <RadzenTextBox Style="width:100%" @bind-Value="u.Email" />
-                                </EditTemplate>
-                            </RadzenDataGridColumn>
-
-                            <RadzenDataGridColumn TItem="UserRow" Property="Role" Title="Rolle" Width="170px">
-                                <Template Context="u">
-                                    <RadzenBadge Text="@u.Role"
-                                                 Style="background: rgba(37,99,235,.10); color:#1e3a8a; border:1px solid rgba(17,24,39,.08);" />
-                                </Template>
-                                <EditTemplate Context="u">
-                                    <RadzenDropDown TValue="string" Data="@Roles" Style="width:100%" @bind-Value="u.Role" />
-                                </EditTemplate>
-                            </RadzenDataGridColumn>
-
-                            <RadzenDataGridColumn TItem="UserRow" Title="Aktionen" Width="220px">
-                                <Template Context="u">
-                                    <div class="rowActions">
-                                        <RadzenButton Size="ButtonSize.Small" Text="Bearbeiten" ButtonStyle="ButtonStyle.Light"
-                                                      Disabled="@(!IsAdmin)" Click="@(() => BeginEditUser(u))" />
-                                        <RadzenButton Size="ButtonSize.Small" Text="Löschen" ButtonStyle="ButtonStyle.Danger"
-                                                      Disabled="@(!IsAdmin)" Click="@(() => DeleteUser(u))" />
-                                    </div>
-                                </Template>
-                            </RadzenDataGridColumn>
-                        </Columns>
-                    </RadzenDataGrid>
                 </div>
 
-                <div class="card">
-                    <div class="sectionHead">
-                        <div>
-                            <div class="h3">Stammdaten</div>
-                            <div class="hint">Typ wählen · Inline editieren · Export CSV/Clipboard</div>
-                        </div>
-
-                        <div class="actions" style="align-items:end;">
-                            <div style="min-width:240px;">
-                                <label class="fieldLabel">Stammdaten-Typ</label>
-                                <RadzenDropDown TValue="string"
-                                                Data="@MasterTypes"
-                                                @bind-Value="@SelectedMasterType"
-                                                Change="@OnMasterTypeChanged"
-                                                Style="width:100%" />
-                            </div>
-
-                            <RadzenButton Text="Neuer Eintrag" Icon="add_circle" ButtonStyle="ButtonStyle.Success"
-                                          Disabled="@(!IsAdmin)" Click="@AddMasterRow" />
-                        </div>
-                    </div>
-
-                    <div class="actions" style="margin:10px 0;">
-                        <RadzenButton Text="Stammdaten → Clipboard" Icon="content_copy" ButtonStyle="ButtonStyle.Light"
-                                      Disabled="@(!IsAdmin)" Click="@CopyMasterToClipboard" />
-                        <RadzenButton Text="Stammdaten → CSV" Icon="download" ButtonStyle="ButtonStyle.Light"
-                                      Disabled="@(!IsAdmin)" Click="@DownloadMasterCsv" />
-                    </div>
-
-                    <RadzenDataGrid @ref="_masterGrid"
-                                    TItem="MasterRow"
-                                    Data="@MasterRows"
-                                    AllowPaging="true" PageSize="8"
-                                    AllowSorting="true"
-                                    EditMode="DataGridEditMode.Single"
-                                    RowUpdate="@OnMasterUpdate"
-                                    RowCreate="@OnMasterCreate">
-
-                        <Columns>
-                            <RadzenDataGridColumn TItem="MasterRow" Property="Value" Title="Wert">
-                                <EditTemplate Context="m">
-                                    <RadzenTextBox Style="width:100%" @bind-Value="m.Value" />
-                                </EditTemplate>
-                            </RadzenDataGridColumn>
-
-                            <RadzenDataGridColumn TItem="MasterRow" Title="Aktionen" Width="220px">
-                                <Template Context="m">
-                                    <div class="rowActions">
-                                        <RadzenButton Size="ButtonSize.Small" Text="Bearbeiten" ButtonStyle="ButtonStyle.Light"
-                                                      Disabled="@(!IsAdmin)" Click="@(() => BeginEditMaster(m))" />
-                                        <RadzenButton Size="ButtonSize.Small" Text="Löschen" ButtonStyle="ButtonStyle.Danger"
-                                                      Disabled="@(!IsAdmin)" Click="@(() => DeleteMaster(m))" />
-                                    </div>
-                                </Template>
-                            </RadzenDataGridColumn>
-                        </Columns>
-                    </RadzenDataGrid>
+                <div class="actions" style="margin-bottom:10px;">
+                    <RadzenButton Text="Neuer Admin" Icon="person_add" ButtonStyle="ButtonStyle.Success" Click="@AddUserRow" />
+                    <RadzenButton Text="Admins → Clipboard" Icon="content_copy" ButtonStyle="ButtonStyle.Light" Click="@CopyUsersToClipboard" />
+                    <RadzenButton Text="Admins → CSV" Icon="download" ButtonStyle="ButtonStyle.Light" Click="@DownloadUsersCsv" />
                 </div>
 
+                <RadzenDataGrid @ref="_usersGrid"
+                                TItem="UserRow"
+                                Data="@FilteredUsers"
+                                AllowPaging="true" PageSize="8"
+                                AllowSorting="true"
+                                EditMode="DataGridEditMode.Single"
+                                RowUpdate="@OnUserUpdate"
+                                RowCreate="@OnUserCreate">
+
+                    <Columns>
+                        <RadzenDataGridColumn TItem="UserRow" Property="Name" Title="Name">
+                            <EditTemplate Context="u">
+                                <RadzenTextBox Style="width:100%" @bind-Value="u.Name" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+
+                        <RadzenDataGridColumn TItem="UserRow" Property="Email" Title="E-Mail">
+                            <EditTemplate Context="u">
+                                <RadzenTextBox Style="width:100%" @bind-Value="u.Email" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+
+                        <RadzenDataGridColumn TItem="UserRow" Property="Role" Title="Rolle" Width="170px">
+                            <Template Context="u">
+                                <RadzenBadge Text="@u.Role"
+                                             Style="background: rgba(37,99,235,.10); color:#1e3a8a; border:1px solid rgba(17,24,39,.08);" />
+                            </Template>
+                            <EditTemplate Context="u">
+                                <RadzenDropDown TValue="string" Data="@Roles" Style="width:100%" @bind-Value="u.Role" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+
+                        <RadzenDataGridColumn TItem="UserRow" Title="Aktionen" Width="230px">
+                            <Template Context="u">
+                                <div class="rowActions">
+                                    <RadzenButton Size="ButtonSize.Small" Text="Bearbeiten" ButtonStyle="ButtonStyle.Light"
+                                                  Click="@(() => BeginEditUser(u))" />
+                                    <RadzenButton Size="ButtonSize.Small" Text="Löschen" ButtonStyle="ButtonStyle.Danger"
+                                                  Click="@(() => DeleteUser(u))" />
+                                </div>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
             </div>
+
+            <!-- Stammdaten -->
+            <div class="card">
+                <div class="sectionHead">
+                    
+                    <div class="actions">
+                        <div style="min-width:260px;">
+                            <label class="fieldLabel">Stammdaten-Typ</label>
+                            <RadzenDropDown TValue="string"
+                                            Data="@MasterTypes"
+                                            @bind-Value="@SelectedMasterType"
+                                            Change="@OnMasterTypeChanged"
+                                            Style="width:100%" />
+                        </div>
+
+                        <RadzenButton Text="Suchen" Icon="search" ButtonStyle="ButtonStyle.Primary" Click="@ReloadMaster" />
+                    </div>
+                </div>
+
+                <div class="actions" style="margin-bottom:10px;">
+                    <RadzenButton Text="Neuer Eintrag" Icon="add_circle" ButtonStyle="ButtonStyle.Success" Click="@AddMasterRow" />
+                    <RadzenButton Text="Stammdaten → Clipboard" Icon="content_copy" ButtonStyle="ButtonStyle.Light" Click="@CopyMasterToClipboard" />
+                    <RadzenButton Text="Stammdaten → CSV" Icon="download" ButtonStyle="ButtonStyle.Light" Click="@DownloadMasterCsv" />
+                </div>
+
+                <RadzenDataGrid @ref="_masterGrid"
+                                TItem="MasterRow"
+                                Data="@MasterRows"
+                                AllowPaging="true" PageSize="8"
+                                AllowSorting="true"
+                                EditMode="DataGridEditMode.Single"
+                                RowUpdate="@OnMasterUpdate"
+                                RowCreate="@OnMasterCreate">
+
+                    <Columns>
+                        <RadzenDataGridColumn TItem="MasterRow" Property="Value" Title="Wert">
+                            <EditTemplate Context="m">
+                                <RadzenTextBox Style="width:100%" @bind-Value="m.Value" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+
+                        <RadzenDataGridColumn TItem="MasterRow" Title="Aktionen" Width="230px">
+                            <Template Context="m">
+                                <div class="rowActions">
+                                    <RadzenButton Size="ButtonSize.Small" Text="Bearbeiten" ButtonStyle="ButtonStyle.Light"
+                                                  Click="@(() => BeginEditMaster(m))" />
+                                    <RadzenButton Size="ButtonSize.Small" Text="Löschen" ButtonStyle="ButtonStyle.Danger"
+                                                  Click="@(() => DeleteMaster(m))" />
+                                </div>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            </div>
+
         </div>
 
     </div>
@@ -553,109 +544,113 @@
 
 @code {
     private bool _jsReady;
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-        var js = @"
-      (function(){
-        window.invAdmin = window.invAdmin || {};
-        window.invAdmin.copyText = async function(text){
-          try{ await navigator.clipboard.writeText(text); }
-          catch(e){
-            const ta = document.createElement('textarea');
-            ta.value = text; document.body.appendChild(ta);
-            ta.select(); document.execCommand('copy'); ta.remove();
-          }
-        };
-        window.invAdmin.downloadTextFile = function(fileName, mimeType, text){
-          const blob = new Blob([text], { type: mimeType });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url; a.download = fileName;
-          document.body.appendChild(a); a.click(); a.remove();
-          URL.revokeObjectURL(url);
-        };
-      })();
-    ";
 
+        var js = @"
+(function(){
+  window.invAdmin = window.invAdmin || {};
+  window.invAdmin.copyText = async function(text){
+    try{ await navigator.clipboard.writeText(text); }
+    catch(e){
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy'); ta.remove();
+    }
+  };
+  window.invAdmin.downloadTextFile = function(fileName, mimeType, text){
+    const blob = new Blob([text], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fileName;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  };
+})();";
         await JS.InvokeVoidAsync("eval", js);
         _jsReady = true;
     }
 
+    // --- Avatar menu ---
+    private bool ShowMenu = false;
     private string CurrentUserName = "Herr Müller";
+    private void ToggleMenu() => ShowMenu = !ShowMenu;
+
+    private void Logout()
+    {
+        ShowMenu = false;
+        NotificationService.Notify(NotificationSeverity.Info, "Abmeldung", "Du wurdest abgemeldet.");
+        Nav.NavigateTo("/login");
+    }
+
+    // --- Users ---
+    private RadzenDataGrid<UserRow>? _usersGrid;
     private readonly List<string> Roles = new() { "Lehrer", "Verantwortlicher", "Administrator" };
-    private string SelectedRole = "Administrator";
-    private bool IsAdmin => SelectedRole == "Administrator";
-
-    private void OnRoleChanged(object? _)
-    {
-        NotificationService.Notify(NotificationSeverity.Info, "Rolle geändert", $"Aktuelle Rolle: {SelectedRole}");
-    }
-
-    private static string GetInitials(string name)
-    {
-        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length == 0) return "??";
-        if (parts.Length == 1) return new string(parts[0].Take(2).ToArray()).ToUpperInvariant();
-        return $"{char.ToUpperInvariant(parts[0][0])}{char.ToUpperInvariant(parts[parts.Length - 1][0])}";
-    }
 
     private List<UserRow> Users = new()
     {
         new UserRow("Herr Müller", "mueller@schule.de", "Administrator"),
         new UserRow("Frau Schmidt", "schmidt@schule.de", "Verantwortlicher"),
-        new UserRow("Herr Becker", "becker@schule.de", "Lehrer")
+        new UserRow("Herr Becker", "becker@schule.de", "Lehrer"),
+        new UserRow("Frau Klein", "klein@schule.de", "Administrator"),
     };
 
-    private RadzenDataGrid<UserRow>? _usersGrid;
-    private RadzenDataGrid<MasterRow>? _masterGrid;
+    private string UserSearch = "";
+    private string? UserRoleFilter = null;
+    private List<UserRow> FilteredUsers = new();
+
+    protected override void OnInitialized()
+    {
+        FilteredUsers = Users.ToList();
+        LoadMasterSet();
+    }
+
+    private void ApplyUserFilter()
+    {
+        var q = UserSearch?.Trim().ToLowerInvariant() ?? "";
+        FilteredUsers = Users
+            .Where(u =>
+                (string.IsNullOrEmpty(q) || u.Name.ToLowerInvariant().Contains(q) || u.Email.ToLowerInvariant().Contains(q)) &&
+                (string.IsNullOrEmpty(UserRoleFilter) || u.Role == UserRoleFilter))
+            .ToList();
+    }
 
     private void AddUserRow()
     {
-        if (!IsAdmin) return;
         var row = new UserRow("", "", "Lehrer");
         Users.Insert(0, row);
+        ApplyUserFilter();
         _usersGrid?.EditRow(row);
     }
 
-    private void BeginEditUser(UserRow u)
-    {
-        if (!IsAdmin) return;
-        _usersGrid?.EditRow(u);
-    }
+    private void BeginEditUser(UserRow u) => _usersGrid?.EditRow(u);
 
     private void DeleteUser(UserRow u)
     {
-        if (!IsAdmin) return;
         Users.Remove(u);
+        ApplyUserFilter();
         NotificationService.Notify(NotificationSeverity.Success, "Nutzer", "Gelöscht (Demo).");
-    }
-
-    private void SaveUsers()
-    {
-        if (!IsAdmin) return;
-        NotificationService.Notify(NotificationSeverity.Success, "Nutzer", "Änderungen gespeichert (Demo).");
     }
 
     private void OnUserUpdate(UserRow u)
     {
-        if (!IsAdmin) return;
-
         if (string.IsNullOrWhiteSpace(u.Name) || string.IsNullOrWhiteSpace(u.Email))
         {
             NotificationService.Notify(NotificationSeverity.Warning, "Validierung", "Name und E-Mail dürfen nicht leer sein.");
             return;
         }
-
-        NotificationService.Notify(NotificationSeverity.Success, "Nutzer", "Aktualisiert (Demo).");
+        NotificationService.Notify(NotificationSeverity.Success, "Nutzer", "Gespeichert (Demo).");
     }
 
     private void OnUserCreate(UserRow u)
     {
-        if (!IsAdmin) return;
         NotificationService.Notify(NotificationSeverity.Success, "Nutzer", "Erstellt (Demo).");
     }
+
+    // --- Master data ---
+    private RadzenDataGrid<MasterRow>? _masterGrid;
+
     private readonly List<string> MasterTypes = new() { "Abteilungen", "Gruppen", "Fächer", "Orte", "Lehrer" };
     private string SelectedMasterType = "Abteilungen";
 
@@ -670,21 +665,20 @@
 
     private List<MasterRow> MasterRows = new();
 
-    protected override void OnInitialized()
-    {
-        LoadMasterSet();
-    }
-
     private void OnMasterTypeChanged(object? _)
     {
         LoadMasterSet();
     }
 
+    private void ReloadMaster()
+    {
+        LoadMasterSet();
+        NotificationService.Notify(NotificationSeverity.Info, "Stammdaten", $"Typ geladen: {SelectedMasterType}");
+    }
+
     private void LoadMasterSet()
     {
-        MasterRows = MasterStore[SelectedMasterType]
-            .Select(v => new MasterRow { Value = v })
-            .ToList();
+        MasterRows = MasterStore[SelectedMasterType].Select(v => new MasterRow { Value = v }).ToList();
     }
 
     private void PersistMasterSet()
@@ -698,21 +692,15 @@
 
     private void AddMasterRow()
     {
-        if (!IsAdmin) return;
         var row = new MasterRow { Value = "" };
         MasterRows.Insert(0, row);
         _masterGrid?.EditRow(row);
     }
 
-    private void BeginEditMaster(MasterRow m)
-    {
-        if (!IsAdmin) return;
-        _masterGrid?.EditRow(m);
-    }
+    private void BeginEditMaster(MasterRow m) => _masterGrid?.EditRow(m);
 
     private void DeleteMaster(MasterRow m)
     {
-        if (!IsAdmin) return;
         MasterRows.Remove(m);
         PersistMasterSet();
         NotificationService.Notify(NotificationSeverity.Success, "Stammdaten", "Gelöscht (Demo).");
@@ -720,65 +708,101 @@
 
     private void OnMasterUpdate(MasterRow m)
     {
-        if (!IsAdmin) return;
         PersistMasterSet();
         NotificationService.Notify(NotificationSeverity.Success, "Stammdaten", "Gespeichert (Demo).");
     }
 
     private void OnMasterCreate(MasterRow m)
     {
-        if (!IsAdmin) return;
         PersistMasterSet();
         NotificationService.Notify(NotificationSeverity.Success, "Stammdaten", "Erstellt (Demo).");
+    }
+
+    // --- Export helpers ---
+    private static string GetInitials(string name)
+    {
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return "??";
+        if (parts.Length == 1) return new string(parts[0].Take(2).ToArray()).ToUpperInvariant();
+        return $"{char.ToUpperInvariant(parts[0][0])}{char.ToUpperInvariant(parts[^1][0])}";
+    }
+
+    private string UsersToCsv()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("Name;Email;Role");
+        foreach (var u in FilteredUsers)
+        {
+            sb.AppendLine($"{Clean(u.Name)};{Clean(u.Email)};{Clean(u.Role)}");
+        }
+        return sb.ToString();
     }
 
     private string MasterToCsv(string type)
     {
         var sb = new StringBuilder();
         sb.AppendLine("Typ;Wert");
-
         foreach (var v in MasterStore[type])
         {
-            var clean = v.Replace(";", ",").Replace("\n", " ").Replace("\r", " ").Trim();
-            sb.AppendLine($"{type};{clean}");
+            sb.AppendLine($"{Clean(type)};{Clean(v)}");
         }
-
         return sb.ToString();
     }
 
-    private async Task CopyMasterToClipboard()
+    private static string Clean(string s)
+        => (s ?? "")
+            .Replace(";", ",")
+            .Replace("\n", " ")
+            .Replace("\r", " ")
+            .Trim();
+
+    private async Task CopyUsersToClipboard()
     {
-        if (!IsAdmin) return;
         if (!_jsReady)
         {
             NotificationService.Notify(NotificationSeverity.Warning, "Export", "JS nicht bereit.");
             return;
         }
+        await JS.InvokeVoidAsync("invAdmin.copyText", UsersToCsv());
+        NotificationService.Notify(NotificationSeverity.Success, "Export", "Admins in Zwischenablage kopiert.");
+    }
 
-        var csv = MasterToCsv(SelectedMasterType);
-        await JS.InvokeVoidAsync("invAdmin.copyText", csv);
+    private async Task DownloadUsersCsv()
+    {
+        if (!_jsReady)
+        {
+            NotificationService.Notify(NotificationSeverity.Warning, "Export", "JS nicht bereit.");
+            return;
+        }
+        var csv = UsersToCsv();
+        await JS.InvokeVoidAsync("invAdmin.downloadTextFile", "admins.csv", "text/csv;charset=utf-8", csv);
+        NotificationService.Notify(NotificationSeverity.Info, "Export", "CSV Download gestartet.");
+    }
+
+    private async Task CopyMasterToClipboard()
+    {
+        if (!_jsReady)
+        {
+            NotificationService.Notify(NotificationSeverity.Warning, "Export", "JS nicht bereit.");
+            return;
+        }
+        await JS.InvokeVoidAsync("invAdmin.copyText", MasterToCsv(SelectedMasterType));
         NotificationService.Notify(NotificationSeverity.Success, "Export", "Stammdaten in Zwischenablage kopiert.");
     }
 
     private async Task DownloadMasterCsv()
     {
-        if (!IsAdmin) return;
         if (!_jsReady)
         {
             NotificationService.Notify(NotificationSeverity.Warning, "Export", "JS nicht bereit.");
             return;
         }
-
         var csv = MasterToCsv(SelectedMasterType);
-        await JS.InvokeVoidAsync(
-            "invAdmin.downloadTextFile",
-            $"stammdaten_{SelectedMasterType}.csv",
-            "text/csv;charset=utf-8",
-            csv
-        );
-
+        await JS.InvokeVoidAsync("invAdmin.downloadTextFile", $"stammdaten_{SelectedMasterType}.csv", "text/csv;charset=utf-8", csv);
         NotificationService.Notify(NotificationSeverity.Info, "Export", "CSV Download gestartet.");
     }
+
+    // --- DTOs ---
     public sealed class MasterRow
     {
         public string Value { get; set; } = "";
@@ -793,7 +817,6 @@
             Email = email;
             Role = role;
         }
-
         public string Name { get; set; } = "";
         public string Email { get; set; } = "";
         public string Role { get; set; } = "Lehrer";
