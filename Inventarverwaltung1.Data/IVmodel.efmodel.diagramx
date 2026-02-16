@@ -91,7 +91,7 @@
         <classShapeMoniker Id="0140e71e-379c-4e0e-bbb8-27d8cb928c89" />
       </nodes>
     </bidirectionalConnector>
-    <bidirectionalConnector Id="f28c6710-2975-43b6-988f-2fd1549246e8" edgePoints="[(17.2934588659555 : 4.41604166244467); (15.630863125436 : 4.41604166244467)]" fixedFrom="Algorithm" fixedTo="Algorithm" color="White" dashStyle="Solid" textColor="White">
+    <bidirectionalConnector Id="f28c6710-2975-43b6-988f-2fd1549246e8" edgePoints="[(17.2934588659555 : 4.41604166244467); (15.630863125436 : 4.41604166244467)]" fixedFrom="NotFixed" fixedTo="NotFixed" color="White" dashStyle="Solid" textColor="White">
       <bidirectionalAssociationMoniker Id="0a6b2e12-348c-4ea8-958b-9ced63ecfa2f" />
       <relativeChildShapes />
       <nodes>
@@ -148,7 +148,7 @@
         <classShapeMoniker Id="84358f92-2ba4-4271-91d7-db03ff95e0e4" />
       </nodes>
     </bidirectionalConnector>
-    <bidirectionalConnector Id="4c3c8f63-e330-4469-a1d5-e824be6e2ca3" edgePoints="[(17.2934588659555 : 3.89794599382488); (15.880863125436 : 3.89794599382488); (15.880863125436 : 2.84977082721889); (7.04763839999214 : 2.84977082721889); (7.04763839999214 : 3.26135232020169)]" fixedFrom="Algorithm" fixedTo="Algorithm" color="White" dashStyle="Solid" textColor="White">
+    <bidirectionalConnector Id="4c3c8f63-e330-4469-a1d5-e824be6e2ca3" edgePoints="[(17.2934588659555 : 3.89794599382488); (15.880863125436 : 3.89794599382488); (15.880863125436 : 2.84977082721889); (7.04763839999214 : 2.84977082721889); (7.04763839999214 : 3.26135232020169)]" fixedFrom="NotFixed" fixedTo="NotFixed" color="White" dashStyle="Solid" textColor="White">
       <bidirectionalAssociationMoniker Id="3075a63e-0866-4167-b655-daa39f3e8800" />
       <relativeChildShapes />
       <nodes>
