@@ -1,9 +1,6 @@
 using Inventarverwaltung1.Components;
 using Microsoft.EntityFrameworkCore;
-using Inventarverwaltung1.Data;
-using Microsoft.EntityFrameworkCore;
 using Radzen;
-using System;
 
 var builder = WebApplication.CreateBuilder(args);
 

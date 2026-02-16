@@ -1,49 +1,274 @@
-﻿@page "/"
-<div style="
-    width: 100%;
-    background: #ffffff;
-    padding: 20px;
-    border-radius: 14px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.10);
-    box-sizing: border-box;
-">
-    <div style="
+﻿@page "/hauptmenu"
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@using System.Text
+
+<style>
+    :root {
+        --bg: #f3f5f9;
+        --card: #ffffff;
+        --muted: #6b7280;
+        --text: #111827;
+        --line: rgba(17,24,39,.10);
+        --shadow: 0 16px 40px rgba(17,24,39,.10);
+        --shadow2: 0 10px 24px rgba(17,24,39,.08);
+        --blue1: #1E3A8A;
+        --blue2: #3B82F6;
+        --blue3: #59a7ff;
+        --radius: 18px;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    /*Hintergrund*/
+    .iv-page {
         width: 100%;
-        height: 85px;
-        background: linear-gradient(90deg, #1E3A8A, #3B82F6);
+        min-height: 100vh;
+        background: radial-gradient(1200px 520px at 50% -120px, rgba(89,167,255,.22), transparent 70%), radial-gradient(900px 420px at 85% 0px, rgba(47,99,230,.14), transparent 55%), linear-gradient(#ffffff, var(--bg));
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    /*Header*/
+    .iv-header {
+        width: 100%;
+        height: 95px;
+        background: linear-gradient(90deg, var(--blue1), var(--blue2));
         color: white;
-        border-radius: 12px;
-        margin-bottom: 30px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        border-radius: 18px;
+        margin-bottom: 18px;
+        box-shadow: var(--shadow);
         display: flex;
         align-items: center;
         padding: 0 25px;
         gap: 20px;
-    ">
-        <img src="logo_header.jpg"
-             style="height: 60px; width: auto;" />
+        position: relative;
+    }
 
-        <h1 style="
+        .iv-header::before {
+            content: "";
+            position: absolute;
+            inset: -120px -120px auto auto;
+            width: 340px;
+            height: 340px;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.18), transparent 60%);
+            transform: rotate(8deg);
+            pointer-events: none;
+        }
+
+        .iv-header img {
+            height: 56px;
+            width: auto;
+            z-index: 1;
+        }
+
+        .iv-header h1 {
             margin: 0;
-            font-size: 32px;
-            font-weight: 600;
+            font-size: 34px;
+            font-weight: 700;
             flex-grow: 1;
             text-align: center;
             letter-spacing: 0.5px;
-        ">
-            Inventarverwaltung
-        </h1>
+            z-index: 1;
+        }
+
+    /*Avatar und Menu*/
+    .iv-user {
+        position: absolute;
+        right: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        z-index: 5;
+    }
+
+    .iv-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,.25);
+        background: rgba(255,255,255,.18);
+        color: #fff;
+        font-weight: 900;
+        cursor: pointer;
+        box-shadow: 0 10px 18px rgba(0,0,0,.12);
+        display: grid;
+        place-items: center;
+        user-select: none;
+    }
+
+    .iv-menu {
+        position: fixed;
+        top: 110px;
+        right: 38px;
+        width: 180px;
+        background: #fff;
+        border: 1px solid rgba(0,0,0,.10);
+        border-radius: 14px;
+        box-shadow: 0 14px 36px rgba(0,0,0,.12);
+        padding: 10px;
+        z-index: 999999;
+    }
+
+    .iv-menu-name {
+        font-weight: 900;
+        color: #111827;
+    }
+
+    .iv-menu-sub {
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 10px;
+    }
+
+    .iv-logout {
+        width: 100%;
+        border: none;
+        border-radius: 12px;
+        padding: 10px 12px;
+        cursor: pointer;
+        font-weight: 800;
+        background: #ef4444;
+        color: white;
+    }
+
+    /*Card mit Tabelle*/
+    .iv-content {
+        width: 100%;
+        background: var(--card);
+        padding: 16px;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow2);
+        box-sizing: border-box;
+        border: 1px solid var(--line);
+    }
+
+    /*Toolbar über der Tabelle (war untder der card verschwunden)*/
+    .iv-toolbar {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+
+    .iv-toolbar-left {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .iv-btn {
+        border: none;
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 8px 18px rgba(17,24,39,.08);
+        background: #2563eb;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /*Status*/
+    .iv-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-weight: 800;
+        font-size: 12px;
+        color: #fff;
+        white-space: nowrap;
+    }
+
+    .s-projektiert {
+        background: #3b82f6;
+    }
+
+    .s-angefordert {
+        background: #f59e0b;
+    }
+
+    .s-bestellt {
+        background: #6366f1;
+    }
+
+    .s-geliefert {
+        background: #10b981;
+    }
+
+    .s-eingesetzt {
+        background: #16a34a;
+    }
+
+    .s-ausgeliehen {
+        background: #f97316;
+    }
+
+    .s-reparatur {
+        background: #ef4444;
+    }
+
+    .s-ausgemustert {
+        background: #6b7280;
+    }
+
+    /* Radzen Grid schöner */
+    .rz-datatable, .rz-data-grid {
+        border-radius: 12px !important;
+        overflow: hidden;
+    }
+</style>
+
+<div class="iv-page" @onclick="CloseMenu">
+
+    <div class="iv-header" @onclick:stopPropagation="true">
+        <img src="logo_header.jpg" />
+        <h1>Inventar</h1>
+
+        <div class="iv-user" @onclick:stopPropagation="true">
+            <div class="iv-avatar" @onclick="ToggleMenu" title="Account">
+                User
+            </div>
+
+            @if (_menuOpen)
+            {
+                <div class="iv-menu">
+                    <div class="iv-menu-name">User</div>
+                    <div class="iv-menu-sub">Abmelden</div>
+                    <button class="iv-logout" type="button" @onclick="Logout">Logout</button>
+                </div>
+            }
+        </div>
     </div>
 
-    <div style="
-        width: 100%;
-        background: #ffffff;
-        padding: 20px;
-        border-radius: 14px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.10);
-        box-sizing: border-box;
-    ">
-        <RadzenDataGrid @bind-Value="@selectedItems"
+    <div class="iv-content">
+
+        <div class="iv-toolbar">
+            <div class="iv-toolbar-left">
+                <button class="iv-btn" type="button" @onclick="CopyInventoryToClipboard">
+                   Inventar → Zwischenablage
+                </button>
+
+                <button class="iv-btn secondary" type="button" @onclick="DownloadInventoryCsv">
+                    Inventar → CSV
+                </button>
+            </div>
+
+            <div style="color: var(--muted); font-size: 12px;">
+                Tipp: Filter findest du oben in den Spalten (Trichter).
+            </div>
+        </div>
+
+        <RadzenDataGrid @ref="_grid"
+                        @bind-Value="@selectedItems"
                         Data="@data"
                         TItem="IDictionary<string, object>"
                         ColumnWidth="auto"
@@ -53,51 +278,93 @@
                         AllowColumnResize="true"
                         AllowPaging="true"
                         AllowSorting="true"
-                        Style="
-                width: 100%;
-                border-radius: 12px;
-                overflow: hidden;
-            ">
+                        Style="width: 100%;">
 
             <Columns>
                 @foreach (var column in columns)
                 {
-                    <RadzenDataGridColumn @key="@column.Key"
-                                          Title="@column.Key"
-                                          Type="@column.Value"
-                                          Property="@PropertyAccess.GetDynamicPropertyExpression(column.Key, column.Value)">
-                        <Template>
-                            @context[@column.Key]
-                        </Template>
-                    </RadzenDataGridColumn>
+                    @if (column.Key == "Status")
+                    {
+                        <RadzenDataGridColumn Title="Status"
+                                              Type="@typeof(string)"
+                                              Property="@PropertyAccess.GetDynamicPropertyExpression(column.Key, column.Value)">
+                            <Template>
+                                @{
+                                    var status = (context.ContainsKey("Status") ? context["Status"]?.ToString() : "") ?? "";
+                                    var cls = StatusToClass(status);
+                                }
+                                <span class="iv-badge @cls">@status</span>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    }
+                    else
+                    {
+                        <RadzenDataGridColumn @key="@column.Key"
+                                              Title="@column.Key"
+                                              Type="@column.Value"
+                                              Property="@PropertyAccess.GetDynamicPropertyExpression(column.Key, column.Value)">
+                            <Template>
+                                @context[@column.Key]
+                            </Template>
+                        </RadzenDataGridColumn>
+                    }
                 }
             </Columns>
 
         </RadzenDataGrid>
-
     </div>
-
 </div>
 
+@code {
+    private bool _menuOpen;
 
+    private RadzenDataGrid<IDictionary<string, object>>? _grid;
 
-@code
-{
     IList<IDictionary<string, object>> selectedItems;
-
     public IEnumerable<IDictionary<string, object>> data { get; set; }
-
     public IDictionary<string, Type> columns { get; set; }
 
-    public enum EnumTest
+    private bool _jsReady;
+
+    private void ToggleMenu() => _menuOpen = !_menuOpen;
+    private void CloseMenu() => _menuOpen = false;
+
+    private void Logout()
     {
-        EnumValue1,
-        EnumValue2
+        _menuOpen = false;
+        Nav.NavigateTo("/login", true);
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await base.OnInitializedAsync();
+        if (!firstRender) return;
+
+        var js = @"
+(function(){
+  window.invUser = window.invUser || {};
+  window.invUser.copyText = async function(text){
+    try{ await navigator.clipboard.writeText(text); }
+    catch(e){
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy'); ta.remove();
+    }
+  };
+  window.invUser.downloadTextFile = function(fileName, mimeType, text){
+    const blob = new Blob([text], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fileName;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  };
+})();";
+        await JS.InvokeVoidAsync("eval", js);
+        _jsReady = true;
+    }
+
+    protected override void OnInitialized()
+    {
         columns = new Dictionary<string, Type>()
         {
             { "InventarID", typeof(int) },
@@ -111,35 +378,92 @@
             { "Rolle", typeof(string) },
             { "Zustand", typeof(string) }
         };
-        data = new List<Dictionary<string, object>>
-{
-    new()
-    {
-        { "InventarID", 1001 },
-        { "Name", "iPad 10 Gen" },
-        { "Status", "Eingesetzt" },
-        { "Abteilung", "IT" },
-        { "Gruppe", "EDV" },
-        { "Schulfach", "Mathe" },
-        { "Ort", "Raum 204" },
-        { "Verantwortlich", "Herr Müller" },
-        { "Rolle", "Admin" },
-        { "Zustand", "Gut" }
-    },
 
-    new()
-    {
-        { "InventarID", 1002 },
-        { "Name", "Beamer Epson 4000" },
-        { "Status", "Reparatur" },
-        { "Abteilung", "AV" },
-        { "Gruppe", "Technik" },
-        { "Schulfach", "Physik" },
-        { "Ort", "Lager" },
-        { "Verantwortlich", "Frau Schmidt" },
-        { "Rolle", "Verantwortlich" },
-        { "Zustand", "Defekt" }
+        data = new List<Dictionary<string, object>>
+        {
+            new()
+            {
+                { "InventarID", 1001 },
+                { "Name", "iPad 10 Gen" },
+                { "Status", "Eingesetzt" },
+                { "Abteilung", "IT" },
+                { "Gruppe", "EDV" },
+                { "Schulfach", "Mathe" },
+                { "Ort", "Raum 204" },
+                { "Verantwortlich", "Herr Müller" },
+                { "Rolle", "Admin" },
+                { "Zustand", "Gut" }
+            },
+            new()
+            {
+                { "InventarID", 1002 },
+                { "Name", "Beamer Epson 4000" },
+                { "Status", "Reparatur" },
+                { "Abteilung", "AV" },
+                { "Gruppe", "Technik" },
+                { "Schulfach", "Physik" },
+                { "Ort", "Lager" },
+                { "Verantwortlich", "Frau Schmidt" },
+                { "Rolle", "Verantwortlich" },
+                { "Zustand", "Defekt" }
+            }
+        };
     }
-};
+
+    private static string StatusToClass(string status) => status switch
+    {
+        "Projektiert" => "s-projektiert",
+        "Angefordert" => "s-angefordert",
+        "Bestellt" => "s-bestellt",
+        "Geliefert" => "s-geliefert",
+        "Eingesetzt" => "s-eingesetzt",
+        "Ausgeliehen" => "s-ausgeliehen",
+        "Reparatur" => "s-reparatur",
+        "Ausgemustert" => "s-ausgemustert",
+        _ => "s-ausgemustert"
+    };
+
+    //Export CSV
+    private string InventoryToCsv(IEnumerable<IDictionary<string, object>> rows)
+    {
+        // Header = Spalten Keys
+        var keys = columns.Keys.ToList();
+        var sb = new StringBuilder();
+        sb.AppendLine(string.Join(";", keys));
+
+        foreach (var r in rows)
+        {
+            var line = keys.Select(k => Clean(r.ContainsKey(k) ? r[k]?.ToString() : ""));
+            sb.AppendLine(string.Join(";", line));
+        }
+        return sb.ToString();
+    }
+
+    private static string Clean(string? s)
+        => (s ?? "")
+            .Replace(";", ",")
+            .Replace("\r", " ")
+            .Replace("\n", " ")
+            .Trim();
+
+    private IEnumerable<IDictionary<string, object>> CurrentRowsForExport()
+    {
+        // NOTE: Das ist die aktuelle Datenquelle. Radzen-Filter wirken intern.
+        // Wenn du später export exakt "gefiltert" brauchst, können wir das mit Grid.View/Query lösen.
+        return data ?? Enumerable.Empty<IDictionary<string, object>>();
+    }
+
+    private async Task CopyInventoryToClipboard()
+    {
+        if (!_jsReady) return;
+        var csv = InventoryToCsv(CurrentRowsForExport());
+        await JS.InvokeVoidAsync("invUser.copyText", csv);
+    }
+
+    private async Task DownloadInventoryCsv()
+    {
+        if (!_jsReady) return;
+        var csv = InventoryToCsv(CurrentRowsForExport());
+        await JS.InvokeVoidAsync("invUser.downloadTextFile", "inventar.csv", "text/csv;charset=utf-8", csv);
     }
 }
