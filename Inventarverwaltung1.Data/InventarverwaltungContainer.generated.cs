@@ -31,8 +31,10 @@ namespace Inventarverwaltung1.Data
       public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Data.Fach> Fach { get; set; }
       public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Data.Gruppe> Gruppe { get; set; }
       public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Data.Inventargegenstand> Inventargegenstand { get; set; }
-      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Data.Ort> Ort { get; set; }
+      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Data.Lagerort> Lagerort { get; set; }
+      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Data.Raum> Raum { get; set; }
       public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Data.Rolle> Rolle { get; set; }
+      public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Data.Standort> Standort { get; set; }
       public virtual Microsoft.EntityFrameworkCore.DbSet<global::Inventarverwaltung1.Data.Zustand> Zustand { get; set; }
 
       #endregion DbSets
@@ -164,17 +166,29 @@ namespace Inventarverwaltung1.Data
                      .HasForeignKey("InventargegenstaendeId")
                      .IsRequired();
 
-         modelBuilder.Entity<global::Inventarverwaltung1.Data.Ort>()
-                     .ToTable("Ort")
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Lagerort>()
+                     .ToTable("Lagerort")
                      .HasKey(t => t.Id);
-         modelBuilder.Entity<global::Inventarverwaltung1.Data.Ort>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Lagerort>()
                      .Property(t => t.Id)
                      .ValueGeneratedOnAdd()
                      .IsRequired();
-         modelBuilder.Entity<global::Inventarverwaltung1.Data.Ort>()
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Lagerort>()
                      .HasMany<global::Inventarverwaltung1.Data.Inventargegenstand>(p => p.Inventargegenstaende)
                      .WithOne(p => p.Ort)
                      .HasForeignKey("OrtId");
+
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Raum>()
+                     .ToTable("Raum")
+                     .HasKey(t => t.Id);
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Raum>()
+                     .Property(t => t.Id)
+                     .ValueGeneratedOnAdd()
+                     .IsRequired();
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Raum>()
+                     .HasMany<global::Inventarverwaltung1.Data.Lagerort>(p => p.Ort)
+                     .WithOne(p => p.Raum)
+                     .HasForeignKey("RaumId");
 
          modelBuilder.Entity<global::Inventarverwaltung1.Data.Rolle>()
                      .ToTable("Rolle")
@@ -187,6 +201,18 @@ namespace Inventarverwaltung1.Data
                      .HasMany<global::Inventarverwaltung1.Data.Benutzer>(p => p.Benutzer)
                      .WithMany(p => p.Rollen)
                      .UsingEntity<Dictionary<string, object>>(right => right.HasOne<global::Inventarverwaltung1.Data.Benutzer>().WithMany().HasForeignKey("Benutzer_Id").OnDelete(DeleteBehavior.Cascade),left => left.HasOne<global::Inventarverwaltung1.Data.Rolle>().WithMany().HasForeignKey("Rolle_Id").OnDelete(DeleteBehavior.Cascade),join => join.ToTable("Benutzer_x_Rolle"));
+
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Standort>()
+                     .ToTable("Standort")
+                     .HasKey(t => t.Id);
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Standort>()
+                     .Property(t => t.Id)
+                     .ValueGeneratedOnAdd()
+                     .IsRequired();
+         modelBuilder.Entity<global::Inventarverwaltung1.Data.Standort>()
+                     .HasMany<global::Inventarverwaltung1.Data.Raum>(p => p.Raum)
+                     .WithOne(p => p.Standort)
+                     .HasForeignKey("StandortId");
 
          modelBuilder.Entity<global::Inventarverwaltung1.Data.Zustand>()
                      .ToTable("Zustand")

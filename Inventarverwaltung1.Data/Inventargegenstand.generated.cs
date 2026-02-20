@@ -131,7 +131,7 @@ namespace Inventarverwaltung1.Data
       /// </summary>
       public virtual global::Inventarverwaltung1.Data.Gruppe Gruppe { get; set; }
 
-      public virtual global::Inventarverwaltung1.Data.Ort Ort { get; set; }
+      public virtual global::Inventarverwaltung1.Data.Lagerort Ort { get; set; }
 
       /// <summary>
       /// Required
