@@ -1,5 +1,4 @@
 <Solution>
   <Project Path="Inventarverwaltung1.Data/Inventarverwaltung1.Data.csproj" Id="87e1608b-01f8-4bc6-85dc-70a9bbd51c6e" />
   <Project Path="Inventarverwaltung1/Inventarverwaltung1.csproj" />
-  <Project Path="TestApp/TestApp.csproj" Id="5b5937b6-4715-4c85-a9b4-70c3b2dae7f0" />
 </Solution>
