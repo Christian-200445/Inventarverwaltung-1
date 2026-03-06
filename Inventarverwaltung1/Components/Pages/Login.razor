@@ -1,8 +1,10 @@
-﻿@page "/login"
+﻿@page "/"
 @inject NavigationManager Nav
+@inject AppDbContext Db
+@using Inventarverwaltung1.Data
+@using Microsoft.EntityFrameworkCore
 
 <style>
-    /*Seite*/
     .iv-page {
         min-height: 100vh;
         background: #f3f5f9;
@@ -11,7 +13,6 @@
         color: #111827;
     }
 
-    /*Header*/
     .iv-header {
         max-width: 900px;
         margin: 0 auto 22px;
@@ -32,7 +33,6 @@
         filter: drop-shadow(0 2px 2px rgba(0,0,0,.18));
     }
 
-    /*LoginBox*/
     .iv-main {
         max-width: 900px;
         margin: 0 auto;
@@ -61,7 +61,6 @@
         font-size: 14px;
     }
 
-    /*Input*/
     .iv-field {
         margin-bottom: 14px;
     }
@@ -71,7 +70,6 @@
             font-weight: 700;
             margin-bottom: 6px;
             font-size: 13px;
-            /*color: #374151;*/
         }
 
     .iv-input {
@@ -84,7 +82,6 @@
         font-size: 14px;
     }
 
-    /*Button*/
     .iv-btn {
         width: 100%;
         padding: 11px 12px;
@@ -98,10 +95,14 @@
         box-shadow: 0 10px 18px rgba(42,100,214,.18);
     }
 
-    /*Errormeldung*/
+        .iv-btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
     .iv-error {
-        background: rgba(220, 38, 38, .08);
-        border: 1px solid rgba(220, 38, 38, .20);
+        background: rgba(220,38,38,.08);
+        border: 1px solid rgba(220,38,38,.20);
         padding: 10px 12px;
         border-radius: 12px;
         color: #b42318;
@@ -109,26 +110,21 @@
         font-weight: 700;
         font-size: 13px;
     }
-
 </style>
 
 <div class="iv-page">
-
     <div class="iv-header">
         <img class="iv-logo" src="logo_header.jpg" alt="Logo" />
     </div>
-
     <div class="iv-main">
         <div class="iv-card">
-
             <h1>Anmelden</h1>
             <p class="iv-sub">Bitte melde dich an, um fortzufahren.</p>
 
             <div class="iv-field">
-                <label>Benutzername</label>
-                <input class="iv-input" @bind="_username" placeholder="z.B. user" />
+                <label>E-Mail</label>
+                <input class="iv-input" @bind="_mail" placeholder="z.B. max@test.de" />
             </div>
-
             <div class="iv-field">
                 <label>Passwort</label>
                 <input class="iv-input" type="password" @bind="_password" placeholder="••••••••" />
@@ -139,36 +135,75 @@
                 <div class="iv-error">@_error</div>
             }
 
-            <button class="iv-btn" type="button" @onclick="DoLogin">
-                Login
+            <button class="iv-btn" type="button" @onclick="DoLogin" disabled="@_loading">
+                @(_loading ? "Wird geprüft..." : "Login")
             </button>
-
         </div>
     </div>
-
 </div>
 
-    @code {
-    string _username = "";
+@code {
+    string _mail = "";
     string _password = "";
     string? _error;
+    bool _loading = false;
 
-    void DoLogin()
+    private async Task DoLogin()
     {
         _error = null;
+        _loading = true;
 
-        if (_username == "admin" && _password == "admin")
+        if (string.IsNullOrWhiteSpace(_mail) || string.IsNullOrWhiteSpace(_password))
         {
-            Nav.NavigateTo("/admin", true);
+            _error = "Bitte E-Mail und Passwort eingeben!";
+            _loading = false;
             return;
         }
 
-        if (_username == "user" && _password == "user")
+        var benutzer = await Db.Benutzer
+            .Include(b => b.Rolle)
+            .FirstOrDefaultAsync(b => b.Mail == _mail.Trim());
+
+        if (benutzer is null || string.IsNullOrEmpty(benutzer.Passwort))
         {
-            Nav.NavigateTo("/hauptmenu", true);
+            _error = "E-Mail oder Passwort falsch!";
+            _loading = false;
             return;
         }
 
-        _error = "Benutzername oder Passwort falsch!";
+        bool passwortKorrekt;
+
+        // Prüfen ob Passwort bereits gehasht ist (BCrypt fängt mit $2 an)
+        if (benutzer.Passwort.StartsWith("$2"))
+        {
+            // BCrypt Vergleich
+            passwortKorrekt = global::BCrypt.Net.BCrypt.Verify(_password, benutzer.Passwort);
+        }
+        else
+        {
+            // Klartext Vergleich
+            passwortKorrekt = benutzer.Passwort == _password;
+
+            // Passwort automatisch hashen und speichern
+            if (passwortKorrekt)
+            {
+                benutzer.Passwort = global::BCrypt.Net.BCrypt.HashPassword(_password);
+                await Db.SaveChangesAsync();
+            }
+        }
+
+        if (!passwortKorrekt)
+        {
+            _error = "E-Mail oder Passwort falsch!";
+            _loading = false;
+            return;
+        }
+
+        // Je nach Rolle weiterleiten
+        var rolle = benutzer.Rolle?.Name?.ToLower();
+        if (rolle == "admin")
+            Nav.NavigateTo("/Admin", true);
+        else
+            Nav.NavigateTo("/Home", true);
     }
 }
