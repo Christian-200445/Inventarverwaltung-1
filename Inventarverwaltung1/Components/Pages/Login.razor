@@ -176,15 +176,14 @@
         // Prüfen ob Passwort bereits gehasht ist (BCrypt fängt mit $2 an)
         if (benutzer.Passwort.StartsWith("$2"))
         {
-            // BCrypt Vergleich
+            
             passwortKorrekt = global::BCrypt.Net.BCrypt.Verify(_password, benutzer.Passwort);
         }
         else
         {
-            // Klartext Vergleich
+            
             passwortKorrekt = benutzer.Passwort == _password;
-
-            // Passwort automatisch hashen und speichern
+            
             if (passwortKorrekt)
             {
                 benutzer.Passwort = global::BCrypt.Net.BCrypt.HashPassword(_password);
@@ -198,12 +197,11 @@
             _loading = false;
             return;
         }
-
-        // Je nach Rolle weiterleiten
+        
         var rolle = benutzer.Rolle?.Name?.ToLower();
         if (rolle == "admin")
-            Nav.NavigateTo("/Admin", true);
+            Nav.NavigateTo($"/Admin?userId={benutzer.Id}", true);
         else
-            Nav.NavigateTo("/Home", true);
+            Nav.NavigateTo($"/Home?userId={benutzer.Id}", true);
     }
 }

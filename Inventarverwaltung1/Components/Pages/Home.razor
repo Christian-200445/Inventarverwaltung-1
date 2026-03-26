@@ -1,0 +1,566 @@
+@page "/Home"
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@inject AppDbContext Db
+@using Inventarverwaltung1.Data
+@using Microsoft.EntityFrameworkCore
+@using System.Text
+
+<style>
+    :root {
+        --bg: #f3f5f9; --card: #ffffff; --muted: #6b7280; --text: #111827;
+        --line: rgba(17,24,39,.10); --shadow: 0 16px 40px rgba(17,24,39,.10);
+        --blue1: #1E3A8A; --blue2: #3B82F6; --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    /* ── Seite ── */
+    .iv-page {
+        width: 100%; min-height: 100vh; padding: 20px;
+        background: radial-gradient(1200px 520px at 50% -120px, rgba(89,167,255,.22), transparent 70%),
+                    linear-gradient(#fff, var(--bg));
+    }
+
+    /* ── Header ── */
+    .iv-header {
+        display: flex; align-items: center; gap: 20px;
+        height: 95px; padding: 0 25px; margin-bottom: 18px; border-radius: var(--radius);
+        background: linear-gradient(90deg, var(--blue1), var(--blue2));
+        color: white; box-shadow: var(--shadow); position: relative;
+    }
+    .iv-header img  { height: 56px; }
+    .iv-header h1   { margin: 0; font-size: 34px; font-weight: 700; flex-grow: 1; text-align: center; }
+
+    /* ── Avatar & Dropdown-Menü ── */
+    .iv-avatar {
+        position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+        width: 42px; height: 42px; border-radius: 50%;
+        border: 2px solid rgba(255,255,255,.4); background: rgba(255,255,255,.22);
+        color: #fff; font-weight: 900; font-size: 14px; cursor: pointer;
+        display: grid; place-items: center; user-select: none;
+    }
+    .iv-menu {
+        position: fixed; top: 108px; right: 18px; width: 220px;
+        background: #fff; border-radius: 16px; overflow: hidden; z-index: 9999;
+        box-shadow: 0 20px 50px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.06);
+    }
+    .iv-menu-head {
+        padding: 16px 14px; display: flex; align-items: center; gap: 12px;
+        background: linear-gradient(135deg, var(--blue1), var(--blue2));
+    }
+    .iv-menu-icon {
+        width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+        background: rgba(255,255,255,.25); border: 2px solid rgba(255,255,255,.4);
+        color: #fff; font-weight: 900; font-size: 13px; display: grid; place-items: center;
+    }
+    .iv-menu-name { font-weight: 800; color: #fff; font-size: 13px; }
+    .iv-menu-mail { font-size: 11px; color: rgba(255,255,255,.75); margin-top: 2px; word-break: break-all; }
+    .iv-menu-body { padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+
+    /* ── Buttons ── */
+    .iv-btn {
+        border: none; border-radius: 12px; padding: 10px 14px;
+        font-weight: 800; cursor: pointer; color: #fff;
+        display: flex; align-items: center; gap: 8px;
+        background: #2563eb;
+    }
+    .iv-btn.green  { background: #16a34a; }
+    .iv-btn.red    { background: #ef4444; }
+    .iv-btn.gray   { background: #6b7280; }
+    .iv-btn.admin  { background: #EFF6FF; color: #1d4ed8; }
+    .iv-btn.logout { background: #FEF2F2; color: #dc2626; }
+    .iv-btn.sm     { padding: 6px 10px; font-size: 12px; }
+
+    /* ── Inhalt & Toolbar ── */
+    .iv-content  { background: var(--card); padding: 16px; border-radius: var(--radius); border: 1px solid var(--line); }
+    .iv-toolbar  { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .iv-search   {
+        padding: 9px 14px 9px 36px; border: 1px solid rgba(0,0,0,.16);
+        border-radius: 12px; font-size: 14px; outline: none; width: 220px;
+        background: #f9fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") no-repeat 11px center;
+    }
+    .iv-search:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.12); }
+
+    /* ── Nur-Ansicht-Badge ── */
+    .iv-readonly-hint {
+        display: inline-block; padding: 3px 10px; border-radius: 999px;
+        background: #f3f4f6; color: #6b7280; font-size: 11px; font-weight: 700;
+    }
+
+    /* ── Modals ── */
+    .iv-overlay  { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 10000; display: flex; align-items: center; justify-content: center; }
+    .iv-modal    { background: #fff; border-radius: var(--radius); padding: 28px; width: 520px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 60px rgba(0,0,0,.18); }
+    .iv-modal h2 { margin: 0 0 20px; font-size: 20px; }
+    .iv-field    { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+    .iv-field label { font-weight: 700; font-size: 13px; color: #374151; }
+    .iv-field input, .iv-field select, .iv-field textarea {
+        border: 1px solid #d1d5db; border-radius: 10px; padding: 9px 12px; font-size: 14px; outline: none;
+    }
+    .iv-field input:focus, .iv-field select:focus, .iv-field textarea:focus { border-color: #3b82f6; }
+    .iv-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+    .iv-confirm  { background: #fff; border-radius: 16px; padding: 28px; width: 360px; max-width: 95vw; text-align: center; box-shadow: 0 24px 60px rgba(0,0,0,.18); }
+    .iv-confirm p { margin: 0 0 20px; font-size: 15px; color: #374151; }
+
+    /* ── Status-Badges ── */
+    .iv-badge      { display: inline-block; padding: 4px 10px; border-radius: 999px; font-weight: 800; font-size: 12px; color: #fff; }
+    .s-verfuegbar  { background: #16a34a; }
+    .s-defekt      { background: #ef4444; }
+    .s-ausgeliehen { background: #f97316; }
+</style>
+
+<div class="iv-page" @onclick="CloseMenu">
+
+    <div class="iv-header" @onclick:stopPropagation="true">
+        <img src="logo_header.jpg"/>
+        <h1>Inventar</h1>
+
+        <div @onclick:stopPropagation="true">
+            <div class="iv-avatar" @onclick="ToggleMenu">@_initialen</div>
+
+            @if (_menuOpen)
+            {
+                <div class="iv-menu">
+                    <div class="iv-menu-head">
+                        <div class="iv-menu-icon">@_initialen</div>
+                        <div>
+                            <div class="iv-menu-name">@_name</div>
+                            <div class="iv-menu-mail">@_mail</div>
+                        </div>
+                    </div>
+                    <div class="iv-menu-body">
+                        @if (_istAdmin)
+                        {
+                            <button class="iv-btn admin" @onclick='() => Nav.NavigateTo($"/Admin?userId={_userId}", true)'>⚙ Admin-Bereich</button>
+                        }
+                        <button class="iv-btn logout" @onclick='() => Nav.NavigateTo("/", true)'>➜ Abmelden</button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="iv-content">
+        <div class="iv-toolbar">
+            <div style="display:flex; gap:10px; align-items:center;">
+                @if (_kannBearbeiten)
+                {
+                    <button class="iv-btn green" @onclick="OpenAddDialog">+ Hinzufügen</button>
+                }
+                <button class="iv-btn" @onclick="DownloadCsv">Inventar → CSV</button>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <input class="iv-search" placeholder="Alle Spalten durchsuchen…"
+                       value="@_suchtext" @oninput="e => Suchen(e.Value?.ToString())"/>
+                <span style="font-size:12px; color:var(--muted);">@_angezeigt.Count Einträge</span>
+            </div>
+        </div>
+
+        <RadzenDataGrid Data="@_angezeigt" TItem="InventarItem"
+                        AllowFiltering="true" AllowPaging="true" AllowSorting="true" AllowColumnResize="true"
+                        FilterMode="FilterMode.Advanced" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                        Style="width:100%"
+                        FilterText="Filter" ApplyFilterText="Anwenden" ClearFilterText="Zurücksetzen"
+                        AndOperatorText="Und" OrOperatorText="Oder"
+                        ContainsText="Enthält" DoesNotContainText="Enthält nicht"
+                        StartsWithText="Beginnt mit" EndsWithText="Endet mit"
+                        EqualsText="Ist gleich" NotEqualsText="Ist nicht gleich"
+                        IsNullText="Ist leer" IsNotNullText="Ist nicht leer"
+                        IsEmptyText="Ist leer" IsNotEmptyText="Ist nicht leer"
+                        GreaterThanText="Größer als" GreaterThanOrEqualsText="Größer oder gleich"
+                        LessThanText="Kleiner als" LessThanOrEqualsText="Kleiner oder gleich">
+            <Columns>
+                <RadzenDataGridColumn TItem="InventarItem" Property="Bezeichnung"       Title="Bezeichnung"/>
+                <RadzenDataGridColumn TItem="InventarItem" Property="Seriennummer"      Title="Seriennummer"/>
+                <RadzenDataGridColumn TItem="InventarItem" Property="Anschaffungsdatum" Title="Anschaffungsdatum">
+                    <Template>@context.Anschaffungsdatum?.ToString("dd.MM.yyyy")</Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="InventarItem" Property="Gruppe"  Title="Gruppe"/>
+                <RadzenDataGridColumn TItem="InventarItem" Property="Zustand" Title="Zustand">
+                    <Template>
+                        <span class="iv-badge @ZustandClass(context.Zustand)">@context.Zustand</span>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="InventarItem" Property="Ort"       Title="Ort"/>
+                <RadzenDataGridColumn TItem="InventarItem" Property="Bemerkung" Title="Bemerkung"/>
+                <RadzenDataGridColumn TItem="InventarItem" Property="AusgeliehenVon" Title="Ausgeliehen von">
+                    <Template>
+                        @if (!string.IsNullOrEmpty(context.AusgeliehenVon))
+                        {
+                            <span class="iv-badge s-ausgeliehen">@context.AusgeliehenVon</span>
+                        }
+                        else
+                        {
+                            <span class="iv-badge s-verfuegbar">Verfügbar</span>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+
+                @* Aktionen-Spalte: nur für Admins sichtbar *@
+                @if (_kannBearbeiten)
+                {
+                    <RadzenDataGridColumn TItem="InventarItem" Title="Aktionen" Filterable="false" Sortable="false">
+                        <Template>
+                            <button class="iv-btn sm"     @onclick="() => OpenEditDialog(context)">✏️ Bearbeiten</button>
+                            <button class="iv-btn sm red" @onclick="() => OpenDeleteConfirm(context)" style="margin-left:6px;">🗑 Löschen</button>
+                        </Template>
+                    </RadzenDataGridColumn>
+                }
+            </Columns>
+        </RadzenDataGrid>
+    </div>
+</div>
+
+@* Hinzufügen / Bearbeiten Modal – nur erreichbar wenn _kannBearbeiten true ist *@
+@if (_showDialog && _kannBearbeiten)
+{
+    <div class="iv-overlay" @onclick="CloseDialog">
+        <div class="iv-modal" @onclick:stopPropagation="true">
+            <h2>@(_editMode ? "Bearbeiten" : "Hinzufügen")</h2>
+
+            <div class="iv-field"><label>Bezeichnung *</label>    <input @bind="_form.Bezeichnung"  placeholder="z.B. Laptop Dell"/></div>
+            <div class="iv-field"><label>Seriennummer *</label>   <input @bind="_form.Seriennummer" placeholder="z.B. SN-001"/></div>
+            <div class="iv-field"><label>Anschaffungsdatum</label><input type="date" @bind="_form.Anschaffungsdatum"/></div>
+            <div class="iv-field"><label>Beschreibung</label>     <textarea @bind="_form.Beschreibung" rows="2"></textarea></div>
+            <div class="iv-field"><label>Bemerkung</label>        <textarea @bind="_form.Bemerkung"    rows="2"></textarea></div>
+
+            <div class="iv-field">
+                <label>Gruppe</label>
+                <select @bind="_form.GruppeId">
+                    <option value="">-- Bitte wählen --</option>
+                    @foreach (var g in _gruppen) { <option value="@g.Id">@g.Name</option> }
+                </select>
+            </div>
+            <div class="iv-field">
+                <label>Zustand</label>
+                <select @bind="_form.ZustandId">
+                    <option value="">-- Bitte wählen --</option>
+                    @foreach (var z in _zustaende) { <option value="@z.Id">@z.Beschreibung</option> }
+                </select>
+            </div>
+            <div class="iv-field">
+                <label>Ort</label>
+                <select @bind="_form.OrtId">
+                    <option value="">-- Kein Ort --</option>
+                    @foreach (var o in _orte) { <option value="@o.Id">Regal @o.RegalNr – @o.RegalOrt</option> }
+                </select>
+            </div>
+            <div class="iv-field">
+                <label>Ausgeliehen von</label>
+                <select @bind="_form.BenutzerID">
+                    <option value="">-- Nicht ausgeliehen --</option>
+                    @foreach (var b in _benutzer) { <option value="@b.Id">@b.Vorname @b.Nachname</option> }
+                </select>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_fehler))
+            {
+                <p style="color:#ef4444; font-weight:700;">@_fehler</p>
+            }
+
+            <div class="iv-modal-actions">
+                <button class="iv-btn gray"  @onclick="CloseDialog">Abbrechen</button>
+                <button class="iv-btn green" @onclick="SaveItem">@(_editMode ? "Speichern" : "Hinzufügen")</button>
+            </div>
+        </div>
+    </div>
+}
+
+@* Löschen-Bestätigung – nur erreichbar wenn _kannBearbeiten true ist *@
+@if (_showConfirm && _kannBearbeiten)
+{
+    <div class="iv-overlay">
+        <div class="iv-confirm">
+            <p>Möchtest du <strong>@_loeschZiel?.Bezeichnung</strong> wirklich löschen?</p>
+            <div style="display:flex; gap:10px; justify-content:center;">
+                <button class="iv-btn gray" @onclick="() => _showConfirm = false">Abbrechen</button>
+                <button class="iv-btn red"  @onclick="DeleteItem">Löschen</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+
+    // ── URL-Parameter ─────────────────────────────────────────────────────────
+    // Auf der Login-Seite nach erfolgreichem Login aufrufen:
+    //   Nav.NavigateTo($"/Home?userId={user.Id}", true);
+    [SupplyParameterFromQuery(Name = "userId")]
+    public string? UserId { get; set; }
+
+    // ── Datenmodelle ──────────────────────────────────────────────────────────
+    private class InventarItem
+    {
+        public Guid      Id                { get; set; }
+        public string?   Bezeichnung       { get; set; }
+        public string?   Seriennummer      { get; set; }
+        public DateTime? Anschaffungsdatum { get; set; }
+        public string?   Gruppe            { get; set; }
+        public string?   Zustand           { get; set; }
+        public string?   Ort               { get; set; }
+        public string?   Bemerkung         { get; set; }
+        public string?   AusgeliehenVon    { get; set; }
+    }
+
+    private class InventarForm
+    {
+        public Guid      Id                { get; set; }
+        public string    Bezeichnung       { get; set; } = "";
+        public string    Seriennummer      { get; set; } = "";
+        public DateTime? Anschaffungsdatum { get; set; }
+        public string    Beschreibung      { get; set; } = "";
+        public string    Bemerkung         { get; set; } = "";
+        public Guid?     GruppeId          { get; set; }
+        public Guid?     ZustandId         { get; set; }
+        public Guid?     OrtId             { get; set; }
+        public Guid?     BenutzerID        { get; set; }
+    }
+
+    private List<InventarItem> _alle      = new();
+    private List<InventarItem> _angezeigt = new();
+    private List<Gruppe>       _gruppen   = new();
+    private List<Zustand>      _zustaende = new();
+    private List<Ort>          _orte      = new();
+    private List<Benutzer>     _benutzer  = new();
+
+    private bool          _menuOpen      = false;
+    private bool          _showDialog    = false;
+    private bool          _showConfirm   = false;
+    private bool          _editMode      = false;
+    private string?       _fehler;
+    private InventarForm  _form          = new();
+    private InventarItem? _loeschZiel;
+
+    private Guid    _userId        = Guid.Empty;
+    private string  _name          = "";
+    private string  _mail          = "";
+    private string  _initialen     = "?";
+    private bool    _istAdmin      = false;
+    private bool    _kannBearbeiten = false; // true = Admin, false = Lehrer / andere Rollen
+    private string  _suchtext      = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // ── User anhand der URL-Parameter-ID laden ────────────────────────────
+        if (!string.IsNullOrEmpty(UserId) && Guid.TryParse(UserId, out var parsedId))
+        {
+            _userId = parsedId;
+
+            var user = await Db.Benutzer
+                .Include(b => b.Rolle)
+                .FirstOrDefaultAsync(b => b.Id == parsedId);
+
+            if (user != null)
+            {
+                _name      = $"{user.Vorname} {user.Nachname}".Trim();
+                _mail      = user.Mail ?? "";
+                _istAdmin  = user.Rolle?.Name?.ToLower() == "admin";
+
+                // Nur Admins dürfen Daten bearbeiten, hinzufügen oder löschen
+                _kannBearbeiten = _istAdmin;
+
+                _initialen = Initialen(_name);
+            }
+        }
+        else
+        {
+            // Kein gültiger User → zurück zur Login-Seite
+            Nav.NavigateTo("/", true);
+            return;
+        }
+
+        _gruppen   = await Db.Gruppe.ToListAsync();
+        _zustaende = await Db.Zustand.ToListAsync();
+        _orte      = await Db.Ort.ToListAsync();
+        _benutzer  = await Db.Benutzer.ToListAsync();
+
+        await LoadItems();
+    }
+
+    private async Task LoadItems()
+    {
+        _alle = await Db.Inventargegenstand
+            .Include(i => i.Gruppe)
+            .Include(i => i.Zustand)
+            .Include(i => i.Ort)
+            .Include(i => i.Benutzer)
+            .Select(i => new InventarItem
+            {
+                Id                = i.Id,
+                Bezeichnung       = i.Bezeichnung,
+                Seriennummer      = i.Seriennummer,
+                Anschaffungsdatum = i.Anschaffungsdatum,
+                Bemerkung         = i.Bemerkung,
+                Gruppe  = i.Gruppe  != null ? i.Gruppe.Name                                : "-",
+                Zustand = i.Zustand != null ? i.Zustand.Beschreibung                       : "-",
+                Ort     = i.Ort     != null ? $"Regal {i.Ort.RegalNr} – {i.Ort.RegalOrt}" : "-",
+                AusgeliehenVon = i.Benutzer != null
+                    ? $"{i.Benutzer.Vorname} {i.Benutzer.Nachname}"
+                    : null
+            })
+            .ToListAsync();
+
+        Suchen(_suchtext);
+    }
+
+    private void Suchen(string? text)
+    {
+        _suchtext = text ?? "";
+        var q = _suchtext.Trim().ToLower();
+
+        _angezeigt = string.IsNullOrEmpty(q)
+            ? _alle.ToList()
+            : _alle.Where(i =>
+                Treffer(i.Bezeichnung,    q) || Treffer(i.Seriennummer,   q) ||
+                Treffer(i.Gruppe,         q) || Treffer(i.Zustand,        q) ||
+                Treffer(i.Ort,            q) || Treffer(i.Bemerkung,      q) ||
+                Treffer(i.AusgeliehenVon, q) ||
+                (i.Anschaffungsdatum?.ToString("dd.MM.yyyy").Contains(q) ?? false)
+              ).ToList();
+    }
+
+    private static bool Treffer(string? wert, string suche)
+        => wert?.ToLower().Contains(suche) ?? false;
+
+    // ── Dialog-Methoden: nur aufrufbar wenn _kannBearbeiten true ist ──────────
+
+    private void OpenAddDialog()
+    {
+        if (!_kannBearbeiten) return;
+        _form       = new();
+        _editMode   = false;
+        _fehler     = null;
+        _showDialog = true;
+    }
+
+    private void OpenEditDialog(InventarItem item)
+    {
+        if (!_kannBearbeiten) return;
+
+        var entity = Db.Inventargegenstand.Find(item.Id);
+        if (entity is null) return;
+
+        _form = new InventarForm
+        {
+            Id                = entity.Id,
+            Bezeichnung       = entity.Bezeichnung  ?? "",
+            Seriennummer      = entity.Seriennummer ?? "",
+            Anschaffungsdatum = entity.Anschaffungsdatum,
+            Beschreibung      = entity.Beschreibung ?? "",
+            Bemerkung         = entity.Bemerkung    ?? "",
+            GruppeId          = entity.GruppeId,
+            ZustandId         = entity.ZustandId,
+            OrtId             = entity.OrtId,
+            BenutzerID        = entity.BenutzerID
+        };
+        _editMode   = true;
+        _fehler     = null;
+        _showDialog = true;
+    }
+
+    private void CloseDialog() => _showDialog = false;
+
+    private async Task SaveItem()
+    {
+        if (!_kannBearbeiten) return;
+
+        if (string.IsNullOrWhiteSpace(_form.Bezeichnung) || string.IsNullOrWhiteSpace(_form.Seriennummer))
+        {
+            _fehler = "Bezeichnung und Seriennummer sind Pflichtfelder!";
+            return;
+        }
+
+        if (_editMode)
+        {
+            var entity = await Db.Inventargegenstand.FindAsync(_form.Id);
+            if (entity != null)
+            {
+                entity.Bezeichnung       = _form.Bezeichnung;
+                entity.Seriennummer      = _form.Seriennummer;
+                entity.Anschaffungsdatum = _form.Anschaffungsdatum;
+                entity.Beschreibung      = _form.Beschreibung;
+                entity.Bemerkung         = _form.Bemerkung;
+                entity.GruppeId          = _form.GruppeId;
+                entity.ZustandId         = _form.ZustandId;
+                entity.OrtId             = _form.OrtId;
+                entity.BenutzerID        = _form.BenutzerID;
+            }
+        }
+        else
+        {
+            Db.Inventargegenstand.Add(new Inventargegenstand
+            {
+                Id                = Guid.NewGuid(),
+                Bezeichnung       = _form.Bezeichnung,
+                Seriennummer      = _form.Seriennummer,
+                Anschaffungsdatum = _form.Anschaffungsdatum,
+                Beschreibung      = _form.Beschreibung,
+                Bemerkung         = _form.Bemerkung,
+                GruppeId          = _form.GruppeId,
+                ZustandId         = _form.ZustandId,
+                OrtId             = _form.OrtId,
+                BenutzerID        = _form.BenutzerID
+            });
+        }
+
+        await Db.SaveChangesAsync();
+        await LoadItems();
+        _showDialog = false;
+    }
+
+    private void OpenDeleteConfirm(InventarItem item)
+    {
+        if (!_kannBearbeiten) return;
+        _loeschZiel  = item;
+        _showConfirm = true;
+    }
+
+    private async Task DeleteItem()
+    {
+        if (!_kannBearbeiten || _loeschZiel is null) return;
+
+        var entity = await Db.Inventargegenstand.FindAsync(_loeschZiel.Id);
+        if (entity != null)
+        {
+            Db.Inventargegenstand.Remove(entity);
+            await Db.SaveChangesAsync();
+        }
+
+        _showConfirm = false;
+        _loeschZiel  = null;
+        await LoadItems();
+    }
+
+    private void ToggleMenu() => _menuOpen = !_menuOpen;
+    private void CloseMenu()  => _menuOpen = false;
+
+    private static string ZustandClass(string? z) => z?.ToLower() switch
+    {
+        "defekt"      => "s-defekt",
+        "ausgeliehen" => "s-ausgeliehen",
+        _             => "s-verfuegbar"
+    };
+
+    private static string Initialen(string name)
+    {
+        var teile = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return teile.Length switch
+        {
+            0 => "?",
+            1 => teile[0][..Math.Min(2, teile[0].Length)].ToUpper(),
+            _ => $"{char.ToUpper(teile[0][0])}{char.ToUpper(teile[^1][0])}"
+        };
+    }
+
+    private async Task DownloadCsv()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("Bezeichnung;Seriennummer;Anschaffungsdatum;Gruppe;Zustand;Ort;Bemerkung;AusgeliehenVon");
+
+        foreach (var i in _angezeigt)
+            sb.AppendLine($"{i.Bezeichnung};{i.Seriennummer};{i.Anschaffungsdatum:dd.MM.yyyy};{i.Gruppe};{i.Zustand};{i.Ort};{i.Bemerkung};{i.AusgeliehenVon}");
+
+        await JS.InvokeVoidAsync("eval", @"window.dlCsv=function(n,t){const b=new Blob([t],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;document.body.appendChild(a);a.click();a.remove();}");
+        await JS.InvokeVoidAsync("dlCsv", "inventar.csv", sb.ToString());
+    }
+}

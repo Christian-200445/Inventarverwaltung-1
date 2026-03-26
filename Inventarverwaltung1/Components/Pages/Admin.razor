@@ -1,0 +1,683 @@
+@page "/Admin"
+@using Inventarverwaltung1.Data
+@using Microsoft.EntityFrameworkCore
+@using Radzen
+@using Radzen.Blazor
+@using System.Text
+@using BCryptNet = global::BCrypt.Net.BCrypt
+
+@inject AppDbContext Db
+@inject NotificationService NotificationService
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+
+<style>
+    :root {
+        --bg: #f3f5f9; --card: #ffffff; --muted: #6b7280;
+        --blue1: #122b73; --blue2: #2f63e6; --blue3: #59a7ff;
+        --radius: 20px; --shadow: 0 16px 40px rgba(17,24,39,.10); --line: rgba(17,24,39,.10);
+    }
+    * { box-sizing: border-box; }
+
+    /* ── Seite ── */
+    .page { min-height: 100vh; background: linear-gradient(#fff, var(--bg)); padding: 22px 18px 60px; font-family: system-ui, sans-serif; }
+    .wrap { max-width: 1320px; margin: 0 auto; }
+
+    /* ── Header ── */
+    .top {
+        border-radius: 26px; padding: 16px; min-height: 92px;
+        background: linear-gradient(95deg, var(--blue1), var(--blue2) 55%, var(--blue3));
+        box-shadow: var(--shadow); color: #fff;
+        display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    }
+    .title { font-size: 22px; font-weight: 900; }
+
+    /* ── Avatar & Menü ── */
+    .iv-avatar {
+        width: 42px; height: 42px; border-radius: 50%;
+        border: 2px solid rgba(255,255,255,.4); background: rgba(255,255,255,.22);
+        color: #fff; font-weight: 900; font-size: 14px; cursor: pointer;
+        display: grid; place-items: center; user-select: none;
+    }
+    .iv-menu {
+        position: fixed; top: 110px; right: 38px; width: 220px;
+        background: #fff; border-radius: 16px; overflow: hidden; z-index: 9999;
+        box-shadow: 0 20px 50px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.06);
+    }
+    .iv-menu-head {
+        padding: 16px 14px; display: flex; align-items: center; gap: 12px;
+        background: linear-gradient(135deg, var(--blue1), var(--blue2));
+    }
+    .iv-menu-icon {
+        width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+        background: rgba(255,255,255,.25); border: 2px solid rgba(255,255,255,.4);
+        color: #fff; font-weight: 900; font-size: 13px; display: grid; place-items: center;
+    }
+    .iv-menu-name { font-weight: 800; color: #fff; font-size: 13px; }
+    .iv-menu-mail { font-size: 11px; color: rgba(255,255,255,.75); margin-top: 2px; word-break: break-all; }
+    .iv-menu-body { padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+
+    /* ── Buttons ── */
+    .btn-logout   { width: 100%; border: none; border-radius: 12px; padding: 10px 14px; cursor: pointer; font-weight: 800; background: #FEF2F2; color: #dc2626; display: flex; align-items: center; gap: 8px; }
+    .btn-home-menu { width: 100%; border: none; border-radius: 12px; padding: 10px 14px; cursor: pointer; font-weight: 800; background: #EFF6FF; color: #1d4ed8; display: flex; align-items: center; gap: 8px; }
+    .btn-home   { border: none; border-radius: 12px; padding: 10px 16px; cursor: pointer; font-weight: 800; background: rgba(255,255,255,.2); color: #fff; }
+    .btn-home:hover { background: rgba(255,255,255,.3); }
+
+    /* ── KPI-Kacheln ── */
+    .kpis { margin-top: 16px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .kpi  { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: flex; justify-content: space-between; }
+    .kpi .label { font-size: 12px; color: var(--muted); }
+    .kpi .value { font-size: 26px; font-weight: 900; margin-top: 6px; }
+    .kpi-icon   { width: 38px; height: 38px; border-radius: 16px; display: grid; place-items: center; background: rgba(47,99,230,.10); font-size: 18px; }
+
+    /* ── Inhalts-Grid ── */
+    .grid { margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
+    .field-label  { display: block; font-size: 12px; color: var(--muted); margin: 0 0 4px 2px; }
+    .toolbar      { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 10px; }
+    .row-actions  { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    /* ── Passwort-Modal ── */
+    .pw-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+    .pw-modal   { background: #fff; border-radius: 20px; padding: 28px; width: 380px; max-width: 95vw; box-shadow: 0 24px 60px rgba(0,0,0,.20); }
+    .pw-titel   { font-size: 17px; font-weight: 900; color: var(--blue1); margin: 0 0 4px; }
+    .pw-sub     { font-size: 12px; color: var(--muted); margin: 0 0 20px; }
+    .pw-field   { margin-bottom: 14px; }
+    .pw-field label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 5px; }
+    .pw-field input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,.18); font-size: 14px; outline: none; }
+    .pw-field input:focus { border-color: var(--blue2); }
+    .pw-actions { display: flex; gap: 10px; margin-top: 6px; }
+    .pw-speichern  { flex: 1; padding: 10px; border: none; border-radius: 10px; background: var(--blue2); color: #fff; font-weight: 800; cursor: pointer; }
+    .pw-abbrechen  { padding: 10px 16px; border: 1px solid rgba(0,0,0,.15); border-radius: 10px; background: #fff; font-weight: 700; cursor: pointer; color: var(--muted); }
+    .pw-fehler     { font-size: 12px; color: #b42318; margin-top: 8px; font-weight: 700; }
+
+    @@media (max-width: 980px) { .kpis { grid-template-columns: 1fr 1fr; } .grid { grid-template-columns: 1fr; } }
+    @@media (max-width: 520px) { .kpis { grid-template-columns: 1fr; } }
+</style>
+
+<div class="page">
+    <div class="wrap">
+
+        <div class="top">
+            <img src="logo_header.jpg" style="height:56px; object-fit:contain; filter:drop-shadow(0 2px 2px rgba(0,0,0,.18));" />
+            <div class="title">Admin-Dashboard</div>
+
+            <div style="position:relative">
+                <div class="iv-avatar" @onclick="() => _menuOffen = !_menuOffen">@Initialen(_adminName)</div>
+                @if (_menuOffen)
+                {
+                    <div class="iv-menu">
+                        <div class="iv-menu-head">
+                            <div class="iv-menu-icon">@Initialen(_adminName)</div>
+                            <div>
+                                <div class="iv-menu-name">@_adminName</div>
+                                <div class="iv-menu-mail">@_adminMail</div>
+                            </div>
+                        </div>
+                        <div class="iv-menu-body">
+                            <button class="btn-home-menu" @onclick='() => Nav.NavigateTo($"/Home?userId={_userId}", true)'>⌂ Zur Übersicht</button>
+                            <button class="btn-logout" @onclick='() => Nav.NavigateTo("/", true)'>➜ Abmelden</button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="kpis">
+            <div class="kpi"><div><div class="label">Nutzer gesamt</div><div class="value">@_benutzer.Count</div></div><div class="kpi-icon">👤</div></div>
+            <div class="kpi"><div><div class="label">Angezeigt</div><div class="value">@_benutzerGefiltert.Count</div></div><div class="kpi-icon">✅</div></div>
+            <div class="kpi"><div><div class="label">Stammdaten-Typ</div><div class="value" style="font-size:16px;margin-top:8px">@_stammdatenTyp</div></div><div class="kpi-icon">📚</div></div>
+            <div class="kpi"><div><div class="label">Einträge</div><div class="value">@_stammdatenGefiltert.Count</div></div><div class="kpi-icon">🧾</div></div>
+        </div>
+
+        <div class="grid">
+
+            <div class="card">
+                <div class="toolbar">
+                    <div style="min-width:240px">
+                        <label class="field-label">Suche (Name / E-Mail)</label>
+                        <RadzenTextBox Style="width:100%" @bind-Value="_benutzerSuche"
+                                       @oninput="e => BenutzerSuchen(e.Value?.ToString())" />
+                    </div>
+                    <RadzenButton Text="Neuer Benutzer" Icon="person_add" ButtonStyle="ButtonStyle.Success" Click="BenutzerHinzufuegen" />
+                    <RadzenButton Text="→ CSV"          Icon="download"   ButtonStyle="ButtonStyle.Light"   Click="BenutzerCsvExport" />
+                </div>
+
+                <RadzenDataGrid @ref="_benutzerGrid" TItem="BenutzerZeile" Data="_benutzerGefiltert"
+                                AllowPaging="true" PageSize="8" AllowSorting="true"
+                                EditMode="DataGridEditMode.Single"
+                                RowUpdate="BenutzerSpeichern" RowCreate="BenutzerErstellen">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="BenutzerZeile" Property="Vorname" Title="Vorname">
+                            <EditTemplate Context="u"><RadzenTextBox Style="width:100%" @bind-Value="u.Vorname" /></EditTemplate>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="BenutzerZeile" Property="Nachname" Title="Nachname">
+                            <EditTemplate Context="u"><RadzenTextBox Style="width:100%" @bind-Value="u.Nachname" /></EditTemplate>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="BenutzerZeile" Property="Mail" Title="E-Mail">
+                            <EditTemplate Context="u"><RadzenTextBox Style="width:100%" @bind-Value="u.Mail" /></EditTemplate>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="BenutzerZeile" Title="Passwort" Width="130px">
+                            <Template Context="u"><span style="color:var(--muted);letter-spacing:2px">••••••</span></Template>
+                            <EditTemplate Context="u">
+                                @if (u.Id == Guid.Empty)
+                                { <RadzenTextBox Style="width:100%" @bind-Value="u.NeuesPasswort" Placeholder="mind. 6 Zeichen" /> }
+                                else
+                                { <span style="font-size:11px;color:var(--muted)">via 🔑</span> }
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="BenutzerZeile" Property="RolleName" Title="Rolle">
+                            <Template Context="u">@u.RolleName</Template>
+                            <EditTemplate Context="u">
+                                <RadzenDropDown TValue="Guid?" Data="_rollen" TextProperty="Name" ValueProperty="Id"
+                                                @bind-Value="u.RolleId" Style="width:100%" Placeholder="-- Keine --" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="BenutzerZeile" Property="AbteilungName" Title="Abteilung">
+                            <Template Context="u">@u.AbteilungName</Template>
+                            <EditTemplate Context="u">
+                                <RadzenDropDown TValue="Guid?" Data="_abteilungen" TextProperty="Name" ValueProperty="Id"
+                                                @bind-Value="u.AbteilungId" Style="width:100%" Placeholder="-- Keine --" />
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="BenutzerZeile" Title="Aktionen" Width="200px">
+                            <Template Context="u">
+                                <div class="row-actions">
+                                    <RadzenButton Size="ButtonSize.Small" Text="Bearb." Icon="edit"   ButtonStyle="ButtonStyle.Light"  Click="@(() => _benutzerGrid!.EditRow(u))" />
+                                    <RadzenButton Size="ButtonSize.Small"               Icon="key"    ButtonStyle="ButtonStyle.Info"   Click="@(() => PasswortModalOeffnen(u))" title="Passwort ändern" />
+                                    <RadzenButton Size="ButtonSize.Small"               Icon="delete" ButtonStyle="ButtonStyle.Danger" Click="@(() => BenutzerLoeschen(u))" />
+                                </div>
+                            </Template>
+                            <EditTemplate Context="u">
+                                <div class="row-actions">
+                                    <RadzenButton Size="ButtonSize.Small" Text="Speichern" Icon="save"   ButtonStyle="ButtonStyle.Success" Click="@(() => _benutzerGrid!.UpdateRow(u))" />
+                                    <RadzenButton Size="ButtonSize.Small" Text="Abbruch"   Icon="cancel" ButtonStyle="ButtonStyle.Light"   Click="@(() => _benutzerGrid!.CancelEditRow(u))" />
+                                </div>
+                            </EditTemplate>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            </div>
+
+            <div class="card">
+                <div class="toolbar">
+                    <div style="min-width:180px">
+                        <label class="field-label">Stammdaten-Typ</label>
+                        <RadzenDropDown TValue="string" Data="_stammdatenTypen"
+                                        @bind-Value="_stammdatenTyp" Change="StammdatenTypGeaendert" Style="width:100%" />
+                    </div>
+                    <div style="min-width:200px">
+                        <label class="field-label">Suche</label>
+                        <RadzenTextBox Style="width:100%" @bind-Value="_stammdatenSuche"
+                                       @oninput="e => StammdatenSuchen(e.Value?.ToString())" />
+                    </div>
+                    <RadzenButton Text="Neuer Eintrag" Icon="add_circle" ButtonStyle="ButtonStyle.Success" Click="StammdatenHinzufuegen" />
+                    <RadzenButton Text="→ CSV"         Icon="download"   ButtonStyle="ButtonStyle.Light"   Click="StammdatenCsvExport" />
+                </div>
+
+                @if (_stammdatenTyp == "Ort")
+                {
+                    <RadzenDataGrid @ref="_stammdatenGrid" TItem="StammdatenZeile" Data="_stammdatenGefiltert"
+                                    AllowPaging="true" PageSize="8" AllowSorting="true"
+                                    EditMode="DataGridEditMode.Single"
+                                    RowUpdate="StammdatenSpeichern" RowCreate="StammdatenErstellen">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="StammdatenZeile" Property="RegalNr" Title="Regal Nr">
+                                <EditTemplate Context="m"><RadzenNumeric TValue="int" Style="width:100%" @bind-Value="m.RegalNr" /></EditTemplate>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="StammdatenZeile" Property="Beschreibung" Title="Regal Ort">
+                                <EditTemplate Context="m"><RadzenTextBox Style="width:100%" @bind-Value="m.Beschreibung" /></EditTemplate>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="StammdatenZeile" Title="Aktionen" Width="200px">
+                                <Template Context="m">
+                                    <div class="row-actions">
+                                        <RadzenButton Size="ButtonSize.Small" Text="Bearb." Icon="edit"   ButtonStyle="ButtonStyle.Light"  Click="@(() => _stammdatenGrid!.EditRow(m))" />
+                                        <RadzenButton Size="ButtonSize.Small"               Icon="delete" ButtonStyle="ButtonStyle.Danger" Click="@(() => StammdatenLoeschen(m))" />
+                                    </div>
+                                </Template>
+                                <EditTemplate Context="m">
+                                    <div class="row-actions">
+                                        <RadzenButton Size="ButtonSize.Small" Text="Speichern" Icon="save"   ButtonStyle="ButtonStyle.Success" Click="@(() => _stammdatenGrid!.UpdateRow(m))" />
+                                        <RadzenButton Size="ButtonSize.Small" Text="Abbruch"   Icon="cancel" ButtonStyle="ButtonStyle.Light"   Click="@(() => _stammdatenGrid!.CancelEditRow(m))" />
+                                    </div>
+                                </EditTemplate>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                }
+                else
+                {
+                    <RadzenDataGrid @ref="_stammdatenGrid" TItem="StammdatenZeile" Data="_stammdatenGefiltert"
+                                    AllowPaging="true" PageSize="8" AllowSorting="true"
+                                    EditMode="DataGridEditMode.Single"
+                                    RowUpdate="StammdatenSpeichern" RowCreate="StammdatenErstellen">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="StammdatenZeile" Property="Beschreibung" Title="Beschreibung">
+                                <EditTemplate Context="m"><RadzenTextBox Style="width:100%" @bind-Value="m.Beschreibung" /></EditTemplate>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="StammdatenZeile" Title="Aktionen" Width="200px">
+                                <Template Context="m">
+                                    <div class="row-actions">
+                                        <RadzenButton Size="ButtonSize.Small" Text="Bearb." Icon="edit"   ButtonStyle="ButtonStyle.Light"  Click="@(() => _stammdatenGrid!.EditRow(m))" />
+                                        <RadzenButton Size="ButtonSize.Small"               Icon="delete" ButtonStyle="ButtonStyle.Danger" Click="@(() => StammdatenLoeschen(m))" />
+                                    </div>
+                                </Template>
+                                <EditTemplate Context="m">
+                                    <div class="row-actions">
+                                        <RadzenButton Size="ButtonSize.Small" Text="Speichern" Icon="save"   ButtonStyle="ButtonStyle.Success" Click="@(() => _stammdatenGrid!.UpdateRow(m))" />
+                                        <RadzenButton Size="ButtonSize.Small" Text="Abbruch"   Icon="cancel" ButtonStyle="ButtonStyle.Light"   Click="@(() => _stammdatenGrid!.CancelEditRow(m))" />
+                                    </div>
+                                </EditTemplate>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                }
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@if (_pwOffen)
+{
+    <div class="pw-overlay" @onclick="PasswortModalSchliessen">
+        <div class="pw-modal" @onclick:stopPropagation>
+            <div class="pw-titel">🔑 Passwort ändern</div>
+            <div class="pw-sub">@_pwBenutzerName</div>
+            <div class="pw-field">
+                <label>Neues Passwort</label>
+                <input type="password" @bind="_pwNeu" @bind:event="oninput" placeholder="mind. 6 Zeichen" />
+            </div>
+            <div class="pw-field">
+                <label>Passwort bestätigen</label>
+                <input type="password" @bind="_pwBestaetigung" @bind:event="oninput" placeholder="wiederholen" />
+            </div>
+            @if (!string.IsNullOrEmpty(_pwFehler))
+            {
+                <div class="pw-fehler">⚠ @_pwFehler</div>
+            }
+            <div class="pw-actions">
+                <button class="pw-speichern" @onclick="PasswortSpeichern">Speichern</button>
+                <button class="pw-abbrechen" @onclick="PasswortModalSchliessen">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+
+    // ── URL-Parameter ─────────────────────────────────────────────────────────
+    [SupplyParameterFromQuery(Name = "userId")]
+    public string? UserId { get; set; }
+
+    // ── Datenmodelle ──────────────────────────────────────────────────────────
+    public sealed class BenutzerZeile
+    {
+        public Guid   Id            { get; set; }
+        public string Vorname       { get; set; } = "";
+        public string Nachname      { get; set; } = "";
+        public string Mail          { get; set; } = "";
+        public string NeuesPasswort { get; set; } = "";
+        public Guid?  RolleId       { get; set; }
+        public string RolleName     { get; set; } = "";
+        public Guid?  AbteilungId   { get; set; }
+        public string AbteilungName { get; set; } = "";
+    }
+
+    public sealed class StammdatenZeile
+    {
+        public Guid   Id           { get; set; }
+        public string Beschreibung { get; set; } = "";
+        public int    RegalNr      { get; set; }
+    }
+
+    private RadzenDataGrid<BenutzerZeile>?   _benutzerGrid;
+    private RadzenDataGrid<StammdatenZeile>? _stammdatenGrid;
+
+    private List<BenutzerZeile>   _benutzer          = new();
+    private List<BenutzerZeile>   _benutzerGefiltert = new();
+    private List<Rolle>           _rollen            = new();
+    private List<Abteilung>       _abteilungen       = new();
+    private string                _benutzerSuche     = "";
+
+    private List<StammdatenZeile> _stammdaten          = new();
+    private List<StammdatenZeile> _stammdatenGefiltert = new();
+    private readonly List<string> _stammdatenTypen     = new() { "Fach", "Abteilung", "Gruppe", "Ort", "Rolle" };
+    private string                _stammdatenTyp       = "Fach";
+    private string                _stammdatenSuche     = "";
+
+    private bool   _menuOffen  = false;
+    private Guid   _userId     = Guid.Empty;
+    private string _adminName  = "Administrator";
+    private string _adminMail  = "";          // NEU: E-Mail für das Dropdown-Menü
+
+    private bool   _pwOffen        = false;
+    private Guid   _pwBenutzerId   = Guid.Empty;
+    private string _pwBenutzerName = "";
+    private string _pwNeu          = "";
+    private string _pwBestaetigung = "";
+    private string _pwFehler       = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await JS.InvokeVoidAsync("eval", @"
+        window.csvDownload = function(dateiname, text) {
+            var blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = dateiname;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        };");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // ── Eingeloggten User anhand userId laden ─────────────────────────────
+        if (!string.IsNullOrEmpty(UserId) && Guid.TryParse(UserId, out var parsedId))
+        {
+            _userId = parsedId;
+
+            var user = await Db.Benutzer
+                .Include(b => b.Rolle)
+                .FirstOrDefaultAsync(b => b.Id == parsedId);
+
+            if (user != null)
+            {
+                _adminName = $"{user.Vorname} {user.Nachname}".Trim();
+                _adminMail = user.Mail ?? "";
+
+                // Sicherheitscheck: nur Admins dürfen diese Seite sehen
+                if (user.Rolle?.Name?.ToLower() != "admin")
+                {
+                    Nav.NavigateTo($"/Home?userId={_userId}", true);
+                    return;
+                }
+            }
+        }
+        else
+        {
+            // Kein gültiger User → zurück zum Login
+            Nav.NavigateTo("/", true);
+            return;
+        }
+
+        await BenutzerLaden();
+        await StammdatenLaden();
+    }
+
+    // ── Benutzer ──────────────────────────────────────────────────────────────
+
+    private async Task BenutzerLaden()
+    {
+        _rollen      = await Db.Rolle.ToListAsync();
+        _abteilungen = await Db.Abteilung.ToListAsync();
+
+        _benutzer = await Db.Benutzer
+            .Include(b => b.Rolle)
+            .Include(b => b.Abteilung)
+            .Select(b => new BenutzerZeile
+            {
+                Id            = b.Id,
+                Vorname       = b.Vorname      ?? "",
+                Nachname      = b.Nachname     ?? "",
+                Mail          = b.Mail         ?? "",
+                RolleId       = b.RolleId,
+                RolleName     = b.Rolle     != null ? b.Rolle.Name     : "",
+                AbteilungId   = b.AbteilungId,
+                AbteilungName = b.Abteilung != null ? b.Abteilung.Name : ""
+            })
+            .ToListAsync();
+
+        BenutzerSuchen(_benutzerSuche);
+    }
+
+    private void BenutzerSuchen(string? text)
+    {
+        _benutzerSuche = text ?? "";
+        var q = _benutzerSuche.Trim().ToLower();
+
+        _benutzerGefiltert = string.IsNullOrEmpty(q)
+            ? _benutzer.ToList()
+            : _benutzer.Where(u =>
+                u.Vorname.ToLower().Contains(q) ||
+                u.Nachname.ToLower().Contains(q) ||
+                u.Mail.ToLower().Contains(q)).ToList();
+    }
+
+    private async Task BenutzerHinzufuegen()
+        => await _benutzerGrid!.InsertRow(new BenutzerZeile());
+
+    private async Task BenutzerLoeschen(BenutzerZeile u)
+    {
+        var entity = await Db.Benutzer.FindAsync(u.Id);
+        if (entity != null)
+        {
+            Db.Benutzer.Remove(entity);
+            await Db.SaveChangesAsync();
+        }
+        _benutzer.Remove(u);
+        BenutzerSuchen(_benutzerSuche);
+        await _benutzerGrid!.Reload();
+        NotificationService.Notify(NotificationSeverity.Success, "Nutzer", "Gelöscht.");
+    }
+
+    private async Task BenutzerSpeichern(BenutzerZeile u)
+    {
+        var entity = await Db.Benutzer.FindAsync(u.Id);
+        if (entity != null)
+        {
+            entity.Vorname     = u.Vorname;
+            entity.Nachname    = u.Nachname;
+            entity.Mail        = u.Mail;
+            entity.RolleId     = u.RolleId;
+            entity.AbteilungId = u.AbteilungId;
+            await Db.SaveChangesAsync();
+        }
+
+        u.RolleName     = _rollen.FirstOrDefault(r => r.Id == u.RolleId)?.Name          ?? "";
+        u.AbteilungName = _abteilungen.FirstOrDefault(a => a.Id == u.AbteilungId)?.Name ?? "";
+
+        BenutzerSuchen(_benutzerSuche);
+        await _benutzerGrid!.Reload();
+        NotificationService.Notify(NotificationSeverity.Success, "Nutzer", "Gespeichert.");
+    }
+
+    private async Task BenutzerErstellen(BenutzerZeile u)
+    {
+        if (string.IsNullOrWhiteSpace(u.NeuesPasswort) || u.NeuesPasswort.Length < 6)
+        {
+            NotificationService.Notify(NotificationSeverity.Warning, "Validierung", "Passwort muss mindestens 6 Zeichen haben.");
+            return;
+        }
+
+        var entity = new Benutzer
+        {
+            Id          = Guid.NewGuid(),
+            Vorname     = u.Vorname,
+            Nachname    = u.Nachname,
+            Mail        = u.Mail,
+            Passwort    = BCryptNet.HashPassword(u.NeuesPasswort),
+            RolleId     = u.RolleId,
+            AbteilungId = u.AbteilungId
+        };
+        Db.Benutzer.Add(entity);
+        await Db.SaveChangesAsync();
+
+        u.Id            = entity.Id;
+        u.RolleName     = _rollen.FirstOrDefault(r => r.Id == u.RolleId)?.Name          ?? "";
+        u.AbteilungName = _abteilungen.FirstOrDefault(a => a.Id == u.AbteilungId)?.Name ?? "";
+
+        _benutzer.Insert(0, u);
+        BenutzerSuchen(_benutzerSuche);
+        await _benutzerGrid!.Reload();
+        NotificationService.Notify(NotificationSeverity.Success, "Nutzer", "Erstellt.");
+    }
+
+    private void PasswortModalOeffnen(BenutzerZeile u)
+    {
+        _pwBenutzerId   = u.Id;
+        _pwBenutzerName = $"{u.Vorname} {u.Nachname}";
+        _pwNeu = _pwBestaetigung = _pwFehler = "";
+        _pwOffen = true;
+    }
+
+    private void PasswortModalSchliessen()
+    {
+        _pwOffen        = false;
+        _pwBenutzerId   = Guid.Empty;
+        _pwNeu = _pwBestaetigung = _pwFehler = "";
+    }
+
+    private async Task PasswortSpeichern()
+    {
+        if (string.IsNullOrWhiteSpace(_pwNeu) || _pwNeu.Length < 6)
+        { _pwFehler = "Passwort muss mindestens 6 Zeichen haben."; return; }
+
+        if (_pwNeu != _pwBestaetigung)
+        { _pwFehler = "Passwörter stimmen nicht überein."; return; }
+
+        var entity = await Db.Benutzer.FindAsync(_pwBenutzerId);
+        if (entity != null)
+        {
+            entity.Passwort = BCryptNet.HashPassword(_pwNeu);
+            await Db.SaveChangesAsync();
+        }
+
+        var name = _pwBenutzerName;
+        PasswortModalSchliessen();
+        NotificationService.Notify(NotificationSeverity.Success, "Passwort", $"Passwort für {name} geändert.");
+    }
+
+    // ── Stammdaten ────────────────────────────────────────────────────────────
+
+    private async Task StammdatenLaden()
+    {
+        _stammdaten = _stammdatenTyp switch
+        {
+            "Fach"      => (await Db.Fach.ToListAsync())     .Select(x => new StammdatenZeile { Id = x.Id, Beschreibung = x.Beschreibung ?? "" }).ToList(),
+            "Abteilung" => (await Db.Abteilung.ToListAsync()).Select(x => new StammdatenZeile { Id = x.Id, Beschreibung = x.Name          ?? "" }).ToList(),
+            "Gruppe"    => (await Db.Gruppe.ToListAsync())   .Select(x => new StammdatenZeile { Id = x.Id, Beschreibung = x.Name          ?? "" }).ToList(),
+            "Ort"       => (await Db.Ort.ToListAsync())      .Select(x => new StammdatenZeile { Id = x.Id, Beschreibung = x.RegalOrt      ?? "", RegalNr = x.RegalNr }).ToList(),
+            "Rolle"     => (await Db.Rolle.ToListAsync())    .Select(x => new StammdatenZeile { Id = x.Id, Beschreibung = x.Name          ?? "" }).ToList(),
+            _           => new()
+        };
+
+        StammdatenSuchen(_stammdatenSuche);
+    }
+
+    private void StammdatenSuchen(string? text)
+    {
+        _stammdatenSuche = text ?? "";
+        var q = _stammdatenSuche.Trim().ToLower();
+
+        _stammdatenGefiltert = string.IsNullOrEmpty(q)
+            ? _stammdaten.ToList()
+            : _stammdaten.Where(m => m.Beschreibung.ToLower().Contains(q)).ToList();
+    }
+
+    private async void StammdatenTypGeaendert(object? _)
+    {
+        _stammdatenSuche = "";
+        await StammdatenLaden();
+        if (_stammdatenGrid != null) await _stammdatenGrid.Reload();
+        StateHasChanged();
+    }
+
+    private async Task StammdatenHinzufuegen()
+        => await _stammdatenGrid!.InsertRow(new StammdatenZeile());
+
+    private async Task StammdatenLoeschen(StammdatenZeile m)
+    {
+        switch (_stammdatenTyp)
+        {
+            case "Fach":      var f  = await Db.Fach.FindAsync(m.Id);      if (f  != null) { Db.Fach.Remove(f);      break; } else return;
+            case "Abteilung": var a  = await Db.Abteilung.FindAsync(m.Id); if (a  != null) { Db.Abteilung.Remove(a); break; } else return;
+            case "Gruppe":    var g  = await Db.Gruppe.FindAsync(m.Id);    if (g  != null) { Db.Gruppe.Remove(g);    break; } else return;
+            case "Ort":       var o  = await Db.Ort.FindAsync(m.Id);       if (o  != null) { Db.Ort.Remove(o);       break; } else return;
+            case "Rolle":     var ro = await Db.Rolle.FindAsync(m.Id);     if (ro != null) { Db.Rolle.Remove(ro);    break; } else return;
+            default: return;
+        }
+        await Db.SaveChangesAsync();
+        _stammdaten.Remove(m);
+        StammdatenSuchen(_stammdatenSuche);
+        await _stammdatenGrid!.Reload();
+        NotificationService.Notify(NotificationSeverity.Success, "Stammdaten", "Gelöscht.");
+    }
+
+    private async Task StammdatenSpeichern(StammdatenZeile m)
+    {
+        switch (_stammdatenTyp)
+        {
+            case "Fach":      var f  = await Db.Fach.FindAsync(m.Id);      if (f  != null) { f.Beschreibung  = m.Beschreibung;                        await Db.SaveChangesAsync(); } break;
+            case "Abteilung": var a  = await Db.Abteilung.FindAsync(m.Id); if (a  != null) { a.Name          = m.Beschreibung;                        await Db.SaveChangesAsync(); } break;
+            case "Gruppe":    var g  = await Db.Gruppe.FindAsync(m.Id);    if (g  != null) { g.Name          = m.Beschreibung;                        await Db.SaveChangesAsync(); } break;
+            case "Ort":       var o  = await Db.Ort.FindAsync(m.Id);       if (o  != null) { o.RegalOrt      = m.Beschreibung; o.RegalNr = m.RegalNr; await Db.SaveChangesAsync(); } break;
+            case "Rolle":     var ro = await Db.Rolle.FindAsync(m.Id);     if (ro != null) { ro.Name         = m.Beschreibung;                        await Db.SaveChangesAsync();
+                              _rollen = await Db.Rolle.ToListAsync(); } break;
+        }
+        StammdatenSuchen(_stammdatenSuche);
+        await _stammdatenGrid!.Reload();
+        NotificationService.Notify(NotificationSeverity.Success, "Stammdaten", "Gespeichert.");
+    }
+
+    private async Task StammdatenErstellen(StammdatenZeile m)
+    {
+        switch (_stammdatenTyp)
+        {
+            case "Fach":      var f  = new Fach      { Id = Guid.NewGuid(), Beschreibung = m.Beschreibung };                  Db.Fach.Add(f);      await Db.SaveChangesAsync(); m.Id = f.Id;  break;
+            case "Abteilung": var a  = new Abteilung { Id = Guid.NewGuid(), Name         = m.Beschreibung };                  Db.Abteilung.Add(a); await Db.SaveChangesAsync(); m.Id = a.Id;  break;
+            case "Gruppe":    var g  = new Gruppe    { Id = Guid.NewGuid(), Name         = m.Beschreibung };                  Db.Gruppe.Add(g);    await Db.SaveChangesAsync(); m.Id = g.Id;  break;
+            case "Ort":       var o  = new Ort       { Id = Guid.NewGuid(), RegalOrt = m.Beschreibung, RegalNr = m.RegalNr }; Db.Ort.Add(o);       await Db.SaveChangesAsync(); m.Id = o.Id;  break;
+            case "Rolle":     var ro = new Rolle     { Id = Guid.NewGuid(), Name     = m.Beschreibung };                      Db.Rolle.Add(ro);    await Db.SaveChangesAsync(); m.Id = ro.Id;
+                              _rollen = await Db.Rolle.ToListAsync(); break;
+        }
+        _stammdaten.Insert(0, m);
+        StammdatenSuchen(_stammdatenSuche);
+        await _stammdatenGrid!.Reload();
+        NotificationService.Notify(NotificationSeverity.Success, "Stammdaten", "Erstellt.");
+    }
+
+    // ── CSV-Export ────────────────────────────────────────────────────────────
+
+    private async Task BenutzerCsvExport()
+    {
+        var sb = new StringBuilder("Vorname;Nachname;Mail;Rolle;Abteilung\n");
+        foreach (var u in _benutzerGefiltert)
+            sb.AppendLine($"{u.Vorname};{u.Nachname};{u.Mail};{u.RolleName};{u.AbteilungName}");
+        await JS.InvokeVoidAsync("csvDownload", "benutzer.csv", sb.ToString());
+    }
+
+    private async Task StammdatenCsvExport()
+    {
+        var sb = new StringBuilder();
+        if (_stammdatenTyp == "Ort")
+        {
+            sb.AppendLine("RegalNr;RegalOrt");
+            foreach (var m in _stammdatenGefiltert)
+                sb.AppendLine($"{m.RegalNr};{m.Beschreibung}");
+        }
+        else
+        {
+            sb.AppendLine("Typ;Beschreibung");
+            foreach (var m in _stammdatenGefiltert)
+                sb.AppendLine($"{_stammdatenTyp};{m.Beschreibung}");
+        }
+        await JS.InvokeVoidAsync("csvDownload", $"stammdaten_{_stammdatenTyp}.csv", sb.ToString());
+    }
+
+    // ── Hilfsmethoden ─────────────────────────────────────────────────────────
+
+    private static string Initialen(string name)
+    {
+        var teile = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return teile.Length switch
+        {
+            0 => "??",
+            1 => teile[0][..Math.Min(2, teile[0].Length)].ToUpper(),
+            _ => $"{char.ToUpper(teile[0][0])}{char.ToUpper(teile[^1][0])}"
+        };
+    }
+}
