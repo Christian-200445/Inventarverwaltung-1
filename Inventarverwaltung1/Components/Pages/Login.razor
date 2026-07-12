@@ -172,8 +172,7 @@
         }
 
         bool passwortKorrekt;
-
-        // Prüfen ob Passwort bereits gehasht ist (BCrypt fängt mit $2 an)
+        
         if (benutzer.Passwort.StartsWith("$2"))
         {
             

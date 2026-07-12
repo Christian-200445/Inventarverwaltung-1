@@ -341,7 +341,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // ── User anhand der URL-Parameter-ID laden ────────────────────────────
         if (!string.IsNullOrEmpty(UserId) && Guid.TryParse(UserId, out var parsedId))
         {
             _userId = parsedId;
@@ -355,8 +354,6 @@
                 _name      = $"{user.Vorname} {user.Nachname}".Trim();
                 _mail      = user.Mail ?? "";
                 _istAdmin  = user.Rolle?.Name?.ToLower() == "admin";
-
-                // Nur Admins dürfen Daten bearbeiten, hinzufügen oder löschen
                 _kannBearbeiten = _istAdmin;
 
                 _initialen = Initialen(_name);
@@ -364,7 +361,6 @@
         }
         else
         {
-            // Kein gültiger User → zurück zur Login-Seite
             Nav.NavigateTo("/", true);
             return;
         }
